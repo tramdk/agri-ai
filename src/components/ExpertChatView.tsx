@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import { chatWithExpert, parseGeminiError } from "../services/gemini";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { KeepAwake } from '@capacitor-community/keep-awake';
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 
 interface ExpertChatViewProps {
   onBack: () => void;
@@ -45,31 +46,8 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    // Setup Speech Recognition
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = "vi-VN";
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputText(prev => prev ? `${prev} ${transcript}` : transcript);
-        setIsListening(false);
-      };
-
-      recognition.onerror = (event: any) => {
-        console.error("Speech recognition error", event.error);
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-    }
+    // Check and request permissions on mount for smoother UX
+    SpeechRecognition.requestPermissions().catch(console.warn);
   }, []);
 
   const handleImageSelect = useCallback(async () => {
@@ -110,21 +88,63 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
     }
   }, []);
 
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      alert("Trình duyệt của bạn không hỗ trợ tính năng nhận diện giọng nói.");
+  // Setup native specific listeners
+  useEffect(() => {
+    // Add result listener
+    const resultListener = SpeechRecognition.addListener('partialResults', (data: { matches: string[] }) => {
+      if (data.matches && data.matches.length > 0) {
+        // Taking the best match
+        setInputText(data.matches[0]);
+      }
+    });
+
+    // Android specific: the service usually stops itself after speech is done
+    // We listen for that to update UI state
+    const stopListener = (window as any).addEventListener('speechRecognitionStopped', () => {
+      setIsListening(false);
+    });
+
+    return () => {
+      resultListener.remove();
+      if (stopListener) (window as any).removeEventListener('speechRecognitionStopped', stopListener);
+    };
+  }, []);
+
+  const toggleListening = async () => {
+    if (isListening) {
+      await SpeechRecognition.stop().catch(() => {});
+      setIsListening(false);
       return;
     }
 
-    if (isListening) {
-      recognitionRef.current.stop();
+    try {
+      const { available } = await SpeechRecognition.available();
+      if (!available) {
+        alert("Điện thoại của bạn không hỗ trợ tính năng nhận diện giọng nói này.");
+        return;
+      }
+
+      const { display } = await SpeechRecognition.checkPermissions();
+      if (display !== 'granted') {
+        const { display: newStatus } = await SpeechRecognition.requestPermissions();
+        if (newStatus !== 'granted') {
+          alert("Bà con cần cấp quyền Truy cập Micro để sử dụng tính năng này nha.");
+          return;
+        }
+      }
+
+      setIsListening(true);
+      await SpeechRecognition.start({
+        language: "vi-VN",
+        partialResults: true, // Use true to see text update live
+        prompt: "Bà con hãy nói nội dung cần hỏi...",
+      });
+    } catch (e: any) {
+      console.error("Speech Start Error:", e);
       setIsListening(false);
-    } else {
-      try {
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (e) {
-        console.error(e);
+      // Fallback or warning
+      if (e.message?.includes("speech recognition engine")) {
+        alert("Hệ thống nhận diện giọng nói chưa sẵn sàng. Bà con thử nhấn lại lần nữa nhé.");
       }
     }
   };
@@ -193,16 +213,30 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       className="fixed inset-0 flex flex-col bg-farm-base z-50 h-[100dvh]"
     > 
       {/* Header */}
-      <div className="bg-white px-4 py-3 flex items-center border-b border-farm-border shadow-sm shrink-0">
-        <button 
-          onClick={onBack}
-          className="p-2 -ml-2 rounded-xl text-farm-text hover:bg-farm-surface active:scale-90 transition-all"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <div className="ml-3">
-          <h3 className="font-bold text-farm-text-header leading-tight">Chuyên Gia AI</h3>
-          <p className="text-xs text-farm-secondary font-medium">Sẵn sàng hỗ trợ</p>
+      <div 
+        className="bg-white px-4 flex items-center border-b border-farm-border shadow-sm shrink-0 justify-between"
+        style={{ paddingTop: 'max(12px, env(safe-area-inset-top))', paddingBottom: '12px' }}
+      >
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={onBack}
+            className="p-2 -ml-2 rounded-xl text-farm-text hover:bg-farm-surface active:scale-90 transition-all border border-farm-border/30 bg-farm-surface/30"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-farm-primary rounded-[10px] flex items-center justify-center shadow-sm">
+               <span className="text-white text-sm font-bold">N</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-farm-text-header leading-tight text-[16px]">Chuyên Gia AI</h3>
+              <p className="text-[10px] text-farm-secondary font-bold uppercase tracking-wider opacity-70">Sẵn sàng hỗ trợ</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-farm-surface/50 rounded-full border border-farm-border/50">
+          <span className="text-[10px] font-bold text-farm-text-muted">Bà Con</span>
+          <span className="text-xs">🌿</span>
         </div>
       </div>
 
