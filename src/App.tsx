@@ -142,9 +142,6 @@ export default function App() {
     }
   };
 
-    }
-  }, []);
-
 
   // Handlers - useCallbacks for stable props (Rule 5.11 / 5.6)
   const handleOpenSettings = useCallback(() => setShowSettings(true), []);
