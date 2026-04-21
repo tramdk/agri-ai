@@ -47,14 +47,14 @@ export const LandingView = memo(function LandingView({
       <AnimatePresence>
         {showSourcePicker && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowSourcePicker(false)}
               className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
             />
-            <motion.div 
+            <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -64,7 +64,7 @@ export const LandingView = memo(function LandingView({
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
               <h3 className="text-xl font-bold text-farm-text-header mb-6 text-center">Bà con muốn lấy ảnh từ đâu?</h3>
               <div className="grid grid-cols-2 gap-4">
-                <button 
+                <button
                   onClick={() => { setShowSourcePicker(false); onCameraClick(); }}
                   className="flex flex-col items-center gap-3 p-6 bg-farm-primary text-white rounded-[24px] shadow-lg shadow-farm-primary/20 active:scale-95 transition-all"
                 >
@@ -73,7 +73,7 @@ export const LandingView = memo(function LandingView({
                   </div>
                   <span className="font-bold">Chụp Ảnh Mới</span>
                 </button>
-                <button 
+                <button
                   onClick={() => { setShowSourcePicker(false); onUploadClick(); }}
                   className="flex flex-col items-center gap-3 p-6 bg-farm-surface border border-farm-border rounded-[24px] text-farm-text-header active:scale-95 transition-all"
                 >
@@ -83,7 +83,7 @@ export const LandingView = memo(function LandingView({
                   <span className="font-bold">Chọn Từ Máy</span>
                 </button>
               </div>
-              <button 
+              <button
                 onClick={() => setShowSourcePicker(false)}
                 className="w-full mt-6 py-4 text-farm-text-muted font-bold text-[15px] active:opacity-60 transition-opacity"
               >
@@ -230,7 +230,7 @@ export const LandingView = memo(function LandingView({
           </div>
         </div>
       </button>
-      
+
       {/* Visual spacer to ensure content doesn't hit the very bottom indicator */}
       <div className="h-4 shrink-0"></div>
     </motion.div>
