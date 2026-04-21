@@ -169,6 +169,9 @@ export const LandingView = memo(function LandingView({
           </div>
         </div>
       </button>
+      
+      {/* Visual spacer to ensure content doesn't hit the very bottom indicator */}
+      <div className="h-4 shrink-0"></div>
     </motion.div>
   );
 });

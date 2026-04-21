@@ -284,7 +284,7 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       {/* Input Area - with safe area padding for Android nav bar */}
       <div 
         className="bg-white border-t border-farm-border shrink-0 px-3 pt-3"
-        style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+        style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-2xl mx-auto w-full">
           {selectedImage && (

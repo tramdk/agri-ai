@@ -245,7 +245,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-farm-base selection:bg-farm-primary/20 flex flex-col items-center">
-      <div className="w-full max-w-4xl min-h-screen flex flex-col bg-white md:shadow-2xl overflow-hidden md:border-x border-farm-border relative">
+      <div 
+        className="w-full max-w-4xl min-h-screen flex flex-col bg-white md:shadow-2xl overflow-hidden md:border-x border-farm-border relative"
+        style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}
+      >
         
         <Header onOpenSettings={handleOpenSettings} onLogoClick={handleReset} />
 

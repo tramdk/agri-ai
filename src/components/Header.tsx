@@ -8,7 +8,10 @@ interface HeaderProps {
 
 export const Header = memo(function Header({ onOpenSettings, onLogoClick }: HeaderProps) {
   return (
-    <header className="bg-white/90 backdrop-blur-xl border-b border-farm-border/40 px-4 py-3 sticky top-0 z-30 flex justify-center">
+    <header 
+      className="bg-white/90 backdrop-blur-xl border-b border-farm-border/40 px-4 sticky top-0 z-30 flex justify-center"
+      style={{ paddingTop: 'max(12px, env(safe-area-inset-top))', paddingBottom: '12px' }}
+    >
       <div className="flex justify-between items-center w-full max-w-screen-xl">
         <div 
           className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 active:scale-95 transition-all" 
@@ -30,10 +33,10 @@ export const Header = memo(function Header({ onOpenSettings, onLogoClick }: Head
         <div className="flex items-center gap-1.5">
           <button 
             onClick={onOpenSettings}
-            className="p-2 rounded-lg text-farm-text-muted hover:bg-farm-surface hover:text-farm-primary transition-all active:scale-95"
+            className="p-3 rounded-xl text-farm-text-muted hover:bg-farm-surface hover:text-farm-primary transition-all active:scale-90"
             aria-label="Cài đặt"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-6 h-6" />
           </button>
           <div className="h-6 w-[1px] bg-farm-border mx-0.5"></div>
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-farm-surface/50 rounded-full border border-farm-border/50">
