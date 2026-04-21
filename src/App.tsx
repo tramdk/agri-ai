@@ -21,6 +21,8 @@ import { ExpertChatView } from "./components/ExpertChatView";
 import { getHistory, saveToHistory, clearHistory, deleteHistoryItem, HistoryEntry } from "./services/history";
 import { fetchWeather, WeatherData } from "./services/weather";
 import { OfflineNotice } from "./components/OfflineNotice";
+import { Geolocation } from '@capacitor/geolocation';
+import { KeepAwake } from '@capacitor-community/keep-awake';
 
 export default function App() {
   // App Core State
@@ -51,21 +53,15 @@ export default function App() {
     // Load history
     setHistoryItems(getHistory());
 
-    // Fetch Weather
+    // Fetch Weather using Capacitor Geolocation for explicit Android permissions
     const loadWeather = async () => {
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
-            setWeather(data);
-          },
-          async () => {
-            const data = await fetchWeather(); // Fallback to HCM
-            setWeather(data);
-          }
-        );
-      } else {
-        const data = await fetchWeather();
+      try {
+        const position = await Geolocation.getCurrentPosition();
+        const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
+        setWeather(data);
+      } catch (err) {
+        console.warn("Geolocation permission denied or failed:", err);
+        const data = await fetchWeather(); // Fallback to HCM
         setWeather(data);
       }
     };
@@ -151,9 +147,12 @@ export default function App() {
     setAppState("ANALYZING");
 
     try {
-      const base64Data = imagePreview.split(",")[1];
-      const { analysis, newHistory } = await analyzePlantImage(base64Data, imageMimeType, plantContext, chatHistory);
+      await KeepAwake.keepAwake().catch(() => {}); // Ignore web errors
       
+      const base64Data = imagePreview.split(",")[1];
+      
+      const { analysis, newHistory } = await analyzePlantImage(base64Data, imageMimeType, plantContext, chatHistory);
+
       // Save to persistent history
       const newEntry = saveToHistory(imagePreview, analysis);
       
@@ -172,6 +171,8 @@ export default function App() {
         setErrorMsg(err.message || "Đã xảy ra lỗi trong quá trình phân tích hình ảnh.");
       }
       setAppState("ERROR");
+    } finally {
+      await KeepAwake.allowSleep().catch(() => {});
     }
   }, [imagePreview, imageMimeType, plantContext, chatHistory]);
 

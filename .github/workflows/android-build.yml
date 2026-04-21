@@ -33,6 +33,9 @@ jobs:
           java-version: '21'
           distribution: 'zulu'
 
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Add Android Platform
         run: |
           if [ ! -d "android" ]; then

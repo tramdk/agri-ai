@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { chatWithExpert } from "../services/gemini";
+import { KeepAwake } from '@capacitor-community/keep-awake';
 
 interface ExpertChatViewProps {
   onBack: () => void;
@@ -133,6 +134,8 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
     setIsTyping(true);
 
     try {
+      await KeepAwake.keepAwake().catch(() => {});
+
       const { responseText, newHistory } = await chatWithExpert(currentInput, base64Code, currentMimeType || undefined, geminiHistory);
       
       setGeminiHistory(newHistory);
@@ -151,6 +154,7 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       }]);
     } finally {
       setIsTyping(false);
+      await KeepAwake.allowSleep().catch(() => {});
     }
   };
 
