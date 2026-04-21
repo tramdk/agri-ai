@@ -22,6 +22,7 @@ import { getHistory, saveToHistory, clearHistory, deleteHistoryItem, HistoryEntr
 import { fetchWeather, WeatherData } from "./services/weather";
 import { OfflineNotice } from "./components/OfflineNotice";
 import { Geolocation } from '@capacitor/geolocation';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { KeepAwake } from '@capacitor-community/keep-awake';
 
 export default function App() {
@@ -42,10 +43,6 @@ export default function App() {
   
   // Transition for smooth state switching
   const [isPending, startTransition] = useTransition();
-
-  // Refs
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const localKey = localStorage.getItem("nongyai_gemini_key");
@@ -164,26 +161,27 @@ export default function App() {
     setAppState("RESULT");
   }, []);
 
-  const handleFileSelect = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setErrorMsg("Vui lòng chọn một tệp hình ảnh hợp lệ (jpg, png).");
-      setAppState("ERROR");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      startTransition(() => {
-        setImagePreview(event.target?.result as string);
-        setImageMimeType(file.type);
-        setAppState("PREVIEW");
+  const handleImageSource = useCallback(async (source: CameraSource) => {
+    try {
+      const photo = await Camera.getPhoto({
+        source,
+        resultType: CameraResultType.DataUrl,
+        quality: 85,
+        allowEditing: false,
       });
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
+      if (photo.dataUrl) {
+        startTransition(() => {
+          setImagePreview(photo.dataUrl!);
+          setImageMimeType(photo.format === 'png' ? 'image/png' : 'image/jpeg');
+          setAppState("PREVIEW");
+        });
+      }
+    } catch (err: any) {
+      // User cancelled — no action needed
+      if (!err.message?.includes('cancelled')) {
+        console.error('Camera error:', err);
+      }
+    }
   }, []);
 
   const handleStartAnalysis = useCallback(async () => {
@@ -237,8 +235,8 @@ export default function App() {
                 onOpenHistory={handleOpenHistory}
                 onOpenHandbook={() => setAppState("HANDBOOK")}
                 onOpenChat={() => setAppState("EXPERT_CHAT")}
-                onCameraClick={() => cameraInputRef.current?.click()}
-                onUploadClick={() => fileInputRef.current?.click()}
+                onCameraClick={() => handleImageSource(CameraSource.Camera)}
+                onUploadClick={() => handleImageSource(CameraSource.Photos)}
               />
             )}
 
@@ -288,9 +286,7 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* Hidden Inputs */}
-        <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleFileSelect} className="hidden" />
-        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+
 
         <SettingsModal 
           isOpen={showSettings}

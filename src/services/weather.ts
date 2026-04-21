@@ -19,7 +19,6 @@ export const fetchWeather = async (lat?: number, lon?: number): Promise<WeatherD
     const data = await response.json();
     const current = data.current_condition[0];
     const city = data.nearest_area[0].areaName[0].value;
-    console.log(data);
     return {
       city: city || (lat ? "Vị trí của bạn" : "Hồ Chí Minh"),
       temp: parseInt(current.temp_C),

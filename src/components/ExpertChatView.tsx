@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { chatWithExpert } from "../services/gemini";
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { KeepAwake } from '@capacitor-community/keep-awake';
 
 interface ExpertChatViewProps {
@@ -32,7 +33,7 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null); // kept for web fallback only
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   
@@ -71,18 +72,24 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
     }
   }, []);
 
-  const handleImageSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setSelectedImage(event.target?.result as string);
-      setSelectedMimeType(file.type);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
+  const handleImageSelect = useCallback(async () => {
+    try {
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Photos,
+        resultType: CameraResultType.DataUrl,
+        quality: 85,
+        allowEditing: false,
+      });
+      if (photo.dataUrl) {
+        setSelectedImage(photo.dataUrl);
+        setSelectedMimeType(photo.format === 'png' ? 'image/png' : 'image/jpeg');
+      }
+    } catch (err: any) {
+      if (!err.message?.includes('cancelled')) {
+        console.error('Gallery error:', err);
+      }
+    }
+  }, []);
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
@@ -163,8 +170,7 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex flex-col h-full absolute inset-0 bg-farm-base z-20"
-    >
+      className="flex flex-col bg-farm-base z-20" style={{ height: '100dvh' }}> 
       {/* Header */}
       <div className="bg-white px-5 py-4 flex items-center border-b border-farm-border shadow-sm shrink-0">
         <button 
@@ -220,8 +226,11 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="bg-white border-t border-farm-border p-4 sm:p-5 shrink-0">
+      {/* Input Area - with safe area padding for Android nav bar */}
+      <div 
+        className="bg-white border-t border-farm-border shrink-0"
+        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', padding: '16px 16px max(16px, env(safe-area-inset-bottom))' }}
+      >
         <div className="max-w-2xl mx-auto">
           {selectedImage && (
             <div className="mb-3 relative inline-block">
@@ -237,12 +246,11 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
           
           <div className="flex items-end gap-2 bg-farm-base rounded-[24px] p-2 border border-farm-border focus-within:border-farm-primary focus-within:ring-2 focus-within:ring-farm-primary/20 transition-all">
             <button 
-              onClick={() => fileInputRef.current?.click()}
+              onClick={handleImageSelect}
               className="p-3 text-farm-primary hover:bg-farm-surface rounded-xl transition-colors shrink-0"
             >
               <ImageIcon className="w-6 h-6" />
             </button>
-            <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
             
             <textarea
               value={inputText}

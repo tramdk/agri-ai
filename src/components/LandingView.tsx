@@ -1,4 +1,4 @@
-import { Camera, Upload, Leaf, ChevronLeft, BookOpen, Cloud, Sun, Wind, Droplets, MapPin, LocateFixed } from "lucide-react";
+import { Camera, Upload, Leaf, BookOpen, Cloud, Sun, Wind, Droplets, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { memo } from "react";
 import { WeatherData } from "../services/weather";
@@ -6,8 +6,6 @@ import { WeatherData } from "../services/weather";
 interface LandingViewProps {
   historyCount: number;
   weather: WeatherData | null;
-  locationPermission: 'unknown' | 'granted' | 'denied' | 'prompt';
-  onRequestLocation: () => void;
   onOpenHistory: () => void;
   onOpenHandbook: () => void;
   onOpenChat: () => void;
@@ -18,8 +16,6 @@ interface LandingViewProps {
 export const LandingView = memo(function LandingView({
   historyCount,
   weather,
-  locationPermission,
-  onRequestLocation,
   onOpenHistory,
   onOpenHandbook,
   onOpenChat,
@@ -82,27 +78,6 @@ export const LandingView = memo(function LandingView({
         </motion.div>
       )}
 
-      {/* Location Permission Banner */}
-      <AnimatePresence>
-        {locationPermission === 'prompt' && (
-          <motion.button
-            key="loc-banner"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            onClick={onRequestLocation}
-            className="w-full flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-3 mb-4 text-left hover:bg-amber-100 active:scale-95 transition-all"
-          >
-            <div className="bg-amber-100 p-2 rounded-xl shrink-0">
-              <LocateFixed className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-[13px] font-bold text-amber-800">Cho phép truy cập vị trí</p>
-              <p className="text-[11px] text-amber-600">Để hiển thị thời tiết chính xác tại vườn</p>
-            </div>
-          </motion.button>
-        )}
-      </AnimatePresence>
 
       <div className="text-center mt-2 mb-6 p-8 bg-white rounded-[32px] shadow-premium border border-farm-border/50 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-farm-primary via-farm-secondary to-farm-primary opacity-30"></div>
