@@ -1,4 +1,4 @@
-import { Camera, Upload, Leaf } from "lucide-react";
+import { Camera, Upload, Leaf, ChevronLeft } from "lucide-react";
 import { motion } from "motion/react";
 import { memo } from "react";
 
@@ -21,67 +21,75 @@ export const LandingView = memo(function LandingView({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
-      className="flex flex-col flex-1 max-w-screen-xl mx-auto w-full px-1"
+      className="flex flex-col flex-1 max-w-screen-xl mx-auto w-full"
     >
-      <div className="text-center mt-4 mb-8 p-10 bg-white rounded-[40px] shadow-premium border border-farm-border relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-farm-primary via-farm-secondary to-farm-primary opacity-30"></div>
-        <div className="mb-6 inline-flex p-5 bg-farm-surface rounded-[24px] shadow-sm">
-          <Leaf className="w-12 h-12 text-farm-primary" />
+      <div className="text-center mt-2 mb-6 p-8 bg-white rounded-[32px] shadow-premium border border-farm-border/50 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-farm-primary via-farm-secondary to-farm-primary opacity-30"></div>
+        <div className="mb-4 inline-flex p-4 bg-farm-surface rounded-[20px]">
+          <Leaf className="w-10 h-10 text-farm-primary" />
         </div>
-        <h2 className="text-4xl leading-tight font-bold text-farm-text-header mb-4 max-w-md mx-auto">
+        <h2 className="text-3xl leading-tight font-extrabold text-farm-text-header mb-3">
           Chẩn Đoán Sâu Bệnh <br/>
-          <span className="text-farm-secondary bg-farm-surface px-3 py-1 rounded-xl">Thông Minh</span>
+          <span className="text-farm-secondary">Thông Minh</span>
         </h2>
-        <p className="text-farm-text-muted text-[17px] leading-relaxed max-w-sm mx-auto">
-          Công nghệ AI tiên tiến giúp bảo vệ mùa màng, tư vấn giải pháp điều trị tức thì cho bà con.
+        <p className="text-farm-text-muted text-[15px] leading-relaxed max-w-[280px] mx-auto opacity-80">
+          AI bảo vệ mùa màng, tư vấn giải pháp điều trị tức thì cho bà con.
         </p>
       </div>
 
       {chatHistoryLength > 0 && (
-        <div className="bg-white/60 border border-farm-border rounded-[32px] p-6 mb-8 relative overflow-hidden backdrop-blur-sm shadow-sm">
-          <div className="flex items-center gap-3.5 mb-2">
-            <div className="bg-farm-primary text-white p-2 rounded-[14px] shadow-lg shadow-farm-primary/20">
-              <Leaf className="w-5 h-5" />
+        <div className="bg-white/60 border border-farm-border/50 rounded-[24px] p-5 mb-6 relative overflow-hidden backdrop-blur-sm shadow-sm">
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="bg-farm-primary text-white p-1.5 rounded-[10px]">
+              <Leaf className="w-4 h-4" />
             </div>
-            <span className="text-xl font-bold text-farm-text-header">Theo Dõi Vườn Cây</span>
+            <span className="text-lg font-bold text-farm-text-header">Theo Dõi Vườn Cây</span>
           </div>
-          <p className="text-[15px] text-farm-text-muted leading-relaxed mb-5">
-            Đã lưu <b>{chatHistoryLength / 2}</b> kết quả trước đó để phân tích chuyên sâu hơn.
+          <p className="text-[14px] text-farm-text-muted leading-relaxed mb-4">
+            Đã lưu <b>{chatHistoryLength / 2}</b> kết quả trước đó.
           </p>
           <button 
             onClick={onClearHistory}
-            className="w-full sm:w-auto px-6 py-3 bg-red-50 text-red-600 font-bold text-sm rounded-2xl hover:bg-red-100 transition-all active:scale-95 border border-red-100"
+            className="w-full px-5 py-2.5 bg-red-50 text-red-600 font-bold text-[13px] rounded-xl active:scale-95 border border-red-100"
           >
-            Xóa lịch sử & Bắt đầu lại
+            Làm mới lịch sử
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-auto pb-6">
+      <div className="grid grid-cols-1 gap-4 pb-6">
         <button 
           onClick={onCameraClick} 
-          className="group relative bg-farm-primary hover:bg-farm-primary-hover text-white rounded-[32px] p-8 flex flex-col items-center gap-5 shadow-xl shadow-farm-primary/15 transition-all active:scale-[0.96]"
+          className="group relative bg-farm-primary hover:bg-farm-primary-hover text-white rounded-[24px] py-6 px-8 flex items-center justify-between shadow-lg shadow-farm-primary/10 transition-all active:scale-[0.97]"
         >
-          <div className="bg-white/15 p-6 rounded-[24px] group-hover:scale-110 transition-transform">
-            <Camera className="w-10 h-10 text-white" />
+          <div className="flex items-center gap-4">
+            <div className="bg-white/10 p-3 rounded-[16px]">
+              <Camera className="w-7 h-7 text-white" />
+            </div>
+            <div className="text-left">
+              <span className="block text-lg font-bold">Chụp Ảnh 📸</span>
+              <span className="block text-[12px] text-green-50/70">Dùng camera máy</span>
+            </div>
           </div>
-          <div className="text-center">
-            <span className="block text-2xl font-bold mb-1">Chụp Ảnh 📸</span>
-            <span className="block text-sm text-green-50/80 font-medium">Sử dụng máy ảnh</span>
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+             <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
           </div>
         </button>
 
         <button 
           onClick={onUploadClick} 
-          className="group relative bg-white border-2 border-farm-border text-farm-text rounded-[32px] p-8 flex flex-col items-center gap-5 shadow-premium hover:bg-farm-surface hover:border-farm-primary/30 transition-all active:scale-[0.96]"
+          className="group relative bg-white border border-farm-border text-farm-text rounded-[24px] py-6 px-8 flex items-center justify-between shadow-premium transition-all active:scale-[0.97]"
         >
-          <div className="bg-farm-surface p-6 rounded-[24px] group-hover:scale-110 transition-transform shadow-inner">
-            <Upload className="w-10 h-10 text-farm-primary" />
+          <div className="flex items-center gap-4">
+            <div className="bg-farm-surface p-3 rounded-[16px]">
+              <Upload className="w-7 h-7 text-farm-primary" />
+            </div>
+            <div className="text-left">
+              <span className="block text-lg font-bold text-farm-text-header">Tải Ảnh Lên</span>
+              <span className="block text-[12px] text-farm-text-muted">Từ bộ nhớ máy</span>
+            </div>
           </div>
-          <div className="text-center">
-            <span className="block text-2xl font-bold mb-1 text-farm-text-header">Tải Ảnh Lên</span>
-            <span className="block text-sm text-farm-text-muted font-medium">Từ thư viện ảnh</span>
-          </div>
+          <ChevronLeft className="w-5 h-5 text-farm-border rotate-180" />
         </button>
       </div>
     </motion.div>

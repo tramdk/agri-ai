@@ -121,11 +121,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-farm-base selection:bg-farm-primary/20 flex flex-col items-center">
-      <div className="w-full max-w-4xl min-h-screen flex flex-col bg-white shadow-2xl overflow-hidden shadow-farm-primary/5 border-x border-farm-border relative">
+      <div className="w-full max-w-4xl min-h-screen flex flex-col bg-white md:shadow-2xl overflow-hidden md:border-x border-farm-border relative">
         
         <Header onOpenSettings={handleOpenSettings} />
 
-        <main className="flex-1 p-6 sm:p-10 flex flex-col">
+        <main className="flex-1 p-5 sm:p-8 flex flex-col">
           <AnimatePresence mode="wait">
             {appState === "IDLE" && (
               <LandingView 
