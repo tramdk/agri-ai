@@ -54,40 +54,36 @@ export default function App() {
     // Load history
     setHistoryItems(getHistory());
 
-    // Fetch Weather - check permission silently first
+    // Use Capacitor Geolocation plugin — this triggers the REAL Android OS permission dialog in APK
     const initWeather = async () => {
+      // Show HCM weather immediately while waiting for location response
+      const fallback = await fetchWeather();
+      setWeather(fallback);
+
       try {
-        // Web Permissions API check (no dialog, just check)
-        if (navigator.permissions) {
-          const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
-          if (status.state === 'granted') {
-            setLocationPermission('granted');
-            loadWeatherWithPosition();
-          } else if (status.state === 'denied') {
-            setLocationPermission('denied');
-            const data = await fetchWeather();
-            setWeather(data);
-          } else {
-            // 'prompt' - need user gesture to show dialog
-            setLocationPermission('prompt');
-            const data = await fetchWeather();
-            setWeather(data);
-          }
-          status.onchange = async () => {
-            if (status.state === 'granted') {
-              setLocationPermission('granted');
-              loadWeatherWithPosition();
-            } else {
-              setLocationPermission(status.state as any);
-            }
-          };
-        } else {
-          // Fallback: no Permissions API (some mobile browsers)
-          loadWeatherWithPosition();
+        // Step 1: Check current permission status (no dialog yet)
+        let permStatus = await Geolocation.checkPermissions();
+
+        // Step 2: If not granted, explicitly request — this triggers Android system dialog
+        if (permStatus.location !== 'granted' && permStatus.coarseLocation !== 'granted') {
+          permStatus = await Geolocation.requestPermissions();
         }
-      } catch {
-        const data = await fetchWeather();
-        setWeather(data);
+
+        // Step 3: If granted, get actual position and update weather
+        if (permStatus.location === 'granted' || permStatus.coarseLocation === 'granted') {
+          setLocationPermission('granted');
+          const position = await Geolocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 12000
+          });
+          const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
+          setWeather(data);
+        } else {
+          setLocationPermission('denied');
+        }
+      } catch (err) {
+        console.warn('Geolocation failed:', err);
+        setLocationPermission('denied');
       }
     };
     initWeather();

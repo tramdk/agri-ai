@@ -45,6 +45,16 @@ jobs:
             echo "Android directory exists. Syncing..."
           fi
 
+      - name: Ensure Location Permissions in AndroidManifest
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          if ! grep -q "ACCESS_FINE_LOCATION" "$MANIFEST"; then
+            sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />|' "$MANIFEST"
+            echo "Location permissions injected."
+          else
+            echo "Location permissions already present."
+          fi
+
       - name: Generate Capacitor Assets
         run: npx @capacitor/assets generate --android
 
