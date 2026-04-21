@@ -1,0 +1,8 @@
+{
+  "name": "Nông Y AI",
+  "description": "Ứng dụng AI giúp bà con nông dân nhận diện sâu bệnh trên cây trồng qua hình ảnh và gợi ý cách điều trị hiệu quả.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}
