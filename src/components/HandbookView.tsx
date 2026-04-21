@@ -1,6 +1,8 @@
 import { ChevronLeft, BookOpen, Droplets, Sprout, ShieldCheck, Thermometer, Info, Sun } from "lucide-react";
 import { motion } from "motion/react";
 import { memo, useState } from "react";
+import imgRiSatCaPhe from "../assets/benh-ri-sat-ca-phe.jpg";
+import imgXiMuSauRieng from "../assets/xi-mu-sau-rieng.png";
 
 interface HandbookViewProps {
   onBack: () => void;
@@ -69,7 +71,7 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
               <div className="bg-red-50 p-3 rounded-xl border border-red-100 mt-2">
                 <p className="text-[12px] font-bold text-red-700 mb-2">1. Báo động: Bệnh Rỉ Sắt (Hemileia vastatrix)</p>
                 <div className="flex gap-3 mb-2 items-start">
-                  <img src="./public/ri-sat-cf.png" alt="Coffee Rust on Leaf" className="w-16 h-16 object-cover rounded-lg border border-red-200 flex-shrink-0 bg-white" />
+                  <img src={imgRiSatCaPhe} alt="Coffee Rust on Leaf" className="w-16 h-16 object-cover rounded-lg border border-red-200 flex-shrink-0 bg-white" />
                   <p className="text-[11px] text-red-800 leading-relaxed font-medium">
                     <span className="font-bold underline">Nguyên nhân:</span> Bào tử nấm rỉ sắt bám mặt dưới lá. Mưa ẩm liên tục giúp bào tử mọc giác hút đâm thủng khí khổng, rút sạch can-xi và diệp lục làm lá vàng ươm, rụng trơ cành. Cây kiệt quệ rụng sạch trái non.
                   </p>
@@ -157,7 +159,7 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
             <div className="bg-red-50 p-3 rounded-xl border border-red-100 mt-2">
               <p className="text-[12px] font-bold text-red-700 mb-2">1. Bệnh Xì Mủ Thân Sầu Riêng (Phytophthora palmivora)</p>
               <div className="flex gap-3 mb-2 items-start">
-                <img src="./public/durian_canker.png" alt="Phytophthora Canker on Durian" className="w-16 h-16 object-cover rounded-lg border border-red-200 flex-shrink-0 bg-white" />
+                <img src={imgXiMuSauRieng} alt="Phytophthora Canker on Durian" className="w-16 h-16 object-cover rounded-lg border border-red-200 flex-shrink-0 bg-white" />
                 <p className="text-[11px] text-red-800 leading-relaxed font-medium">
                   <span className="font-bold underline">Cơ chế xâm nhiễm học:</span> Bào tử động (Zoospores) mang 2 tiên mao bơi lội trong dòng nước văng từ mặt đất lên thân. Men Cellulase tiết ra khoan thủng lớp Suberin bảo vệ vỏ, luồn sợ nấm cắm thẳng vào nhu mô và hệ mạch rây (Phloem), phá hủy mạch dẫn đến xì mủ thối đen.
                 </p>

@@ -38,6 +38,7 @@ export default function App() {
   const [apiKey, setApiKey] = useState("");
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [locationPermission, setLocationPermission] = useState<'unknown' | 'granted' | 'denied' | 'prompt'>('unknown');
   
   // Transition for smooth state switching
   const [isPending, startTransition] = useTransition();
@@ -53,32 +54,66 @@ export default function App() {
     // Load history
     setHistoryItems(getHistory());
 
-    // Fetch Weather using Capacitor Geolocation for explicit Android permissions
-    const loadWeather = async () => {
+    // Fetch Weather - check permission silently first
+    const initWeather = async () => {
       try {
-        try {
-          const permStatus = await Geolocation.checkPermissions();
-          if (permStatus.location !== 'granted') {
-            await Geolocation.requestPermissions();
+        // Web Permissions API check (no dialog, just check)
+        if (navigator.permissions) {
+          const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+          if (status.state === 'granted') {
+            setLocationPermission('granted');
+            loadWeatherWithPosition();
+          } else if (status.state === 'denied') {
+            setLocationPermission('denied');
+            const data = await fetchWeather();
+            setWeather(data);
+          } else {
+            // 'prompt' - need user gesture to show dialog
+            setLocationPermission('prompt');
+            const data = await fetchWeather();
+            setWeather(data);
           }
-        } catch (e) {
-          // Web fallback or plugin error ignore
-          console.warn("Permission check skipped:", e);
+          status.onchange = async () => {
+            if (status.state === 'granted') {
+              setLocationPermission('granted');
+              loadWeatherWithPosition();
+            } else {
+              setLocationPermission(status.state as any);
+            }
+          };
+        } else {
+          // Fallback: no Permissions API (some mobile browsers)
+          loadWeatherWithPosition();
         }
-        
-        const position = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 10000
-        });
-        const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
-        setWeather(data);
-      } catch (err) {
-        console.warn("Geolocation permission denied or failed:", err);
-        const data = await fetchWeather(); // Fallback to HCM
+      } catch {
+        const data = await fetchWeather();
         setWeather(data);
       }
     };
-    loadWeather();
+    initWeather();
+  }, []);
+
+  const loadWeatherWithPosition = async () => {
+    try {
+      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+      const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
+      setWeather(data);
+    } catch {
+      const data = await fetchWeather();
+      setWeather(data);
+    }
+  };
+
+  const handleRequestLocation = useCallback(async () => {
+    try {
+      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+      setLocationPermission('granted');
+      const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
+      setWeather(data);
+    } catch (err) {
+      console.warn('Location denied:', err);
+      setLocationPermission('denied');
+    }
   }, []);
 
   // Handlers - useCallbacks for stable props (Rule 5.11 / 5.6)
@@ -201,6 +236,8 @@ export default function App() {
               <LandingView 
                 historyCount={historyItems.length}
                 weather={weather}
+                locationPermission={locationPermission}
+                onRequestLocation={handleRequestLocation}
                 onOpenHistory={handleOpenHistory}
                 onOpenHandbook={() => setAppState("HANDBOOK")}
                 onOpenChat={() => setAppState("EXPERT_CHAT")}
