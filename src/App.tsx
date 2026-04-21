@@ -246,13 +246,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-farm-base selection:bg-farm-primary/20 flex flex-col items-center">
       <div 
-        className="w-full max-w-4xl min-h-screen flex flex-col bg-white md:shadow-2xl overflow-hidden md:border-x border-farm-border relative"
-        style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}
+        className="w-full max-w-4xl h-screen flex flex-col bg-white md:shadow-2xl overflow-hidden md:border-x border-farm-border relative"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)', height: '100dvh' }}
       >
         
         <Header onOpenSettings={handleOpenSettings} onLogoClick={handleReset} />
 
-        <main className="flex-1 p-5 sm:p-8 flex flex-col">
+        <main className="flex-1 overflow-y-auto p-5 sm:p-8 flex flex-col">
           <AnimatePresence mode="wait">
             {appState === "IDLE" && (
               <LandingView 
