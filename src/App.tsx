@@ -24,6 +24,7 @@ import { OfflineNotice } from "./components/OfflineNotice";
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { KeepAwake } from '@capacitor-community/keep-awake';
+import { App as CapApp } from '@capacitor/app';
 
 export default function App() {
   // App Core State
@@ -85,6 +86,27 @@ export default function App() {
     };
     initWeather();
   }, []);
+
+  // Handle Hardware Back Button (Android)
+  useEffect(() => {
+    const backHandler = CapApp.addListener('backButton', ({ canGoBack }) => {
+      if (showSettings) {
+        setShowSettings(false);
+      } else if (appState !== "IDLE") {
+        handleReset();
+      } else {
+        // At IDLE, check if there's any browser history (rare in this single page app)
+        // or just exit the app.
+        if (!canGoBack) {
+          CapApp.exitApp();
+        }
+      }
+    });
+
+    return () => {
+      backHandler.then(h => h.remove());
+    };
+  }, [appState, showSettings, handleReset]);
 
   const loadWeatherWithPosition = async () => {
     try {
