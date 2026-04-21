@@ -1,4 +1,4 @@
-import { Camera, Upload, Leaf, BookOpen, Cloud, Sun, Wind, Droplets, MapPin } from "lucide-react";
+import { Camera, Upload, Leaf, BookOpen, Cloud, Sun, Wind, Droplets, MapPin, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { memo } from "react";
 import { WeatherData } from "../services/weather";
