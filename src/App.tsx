@@ -56,7 +56,20 @@ export default function App() {
     // Fetch Weather using Capacitor Geolocation for explicit Android permissions
     const loadWeather = async () => {
       try {
-        const position = await Geolocation.getCurrentPosition();
+        try {
+          const permStatus = await Geolocation.checkPermissions();
+          if (permStatus.location !== 'granted') {
+            await Geolocation.requestPermissions();
+          }
+        } catch (e) {
+          // Web fallback or plugin error ignore
+          console.warn("Permission check skipped:", e);
+        }
+        
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000
+        });
         const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
         setWeather(data);
       } catch (err) {
