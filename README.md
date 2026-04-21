@@ -3,6 +3,8 @@
 <div align="center">
   <img src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" alt="Nông Y AI Banner" width="100%" style="border-radius: 24px; margin-bottom: 20px;" />
 
+  <img src="/public/icon.png" alt="Nông Y AI Icon" width="128" height="128" style="border-radius: 32px; margin-bottom: 20px;" />
+
   [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/tramdk/agi-ai/android-build.yml?branch=main&label=Build%20APK&style=for-the-badge&logo=github)](https://github.com/tramdk/agi-ai/actions)
   [![Capacitor](https://img.shields.io/badge/Powered%20By-Capacitor-blue?style=for-the-badge&logo=capacitor)](https://capacitorjs.com/)
   [![Gemini AI](https://img.shields.io/badge/AI-Google%20Gemini-orange?style=for-the-badge&logo=google-gemini)](https://ai.google.dev/)
