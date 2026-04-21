@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff } from "lucide-react";
+import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff, Camera as CameraIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { chatWithExpert, parseGeminiError } from "../services/gemini";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -91,6 +91,25 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
     }
   }, []);
 
+  const handleCameraCapture = useCallback(async () => {
+    try {
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Camera,
+        resultType: CameraResultType.DataUrl,
+        quality: 85,
+        allowEditing: false,
+      });
+      if (photo.dataUrl) {
+        setSelectedImage(photo.dataUrl);
+        setSelectedMimeType(photo.format === 'png' ? 'image/png' : 'image/jpeg');
+      }
+    } catch (err: any) {
+      if (!err.message?.includes('cancelled')) {
+        console.error('Camera error:', err);
+      }
+    }
+  }, []);
+
   const toggleListening = () => {
     if (!recognitionRef.current) {
       alert("Trình duyệt của bạn không hỗ trợ tính năng nhận diện giọng nói.");
@@ -171,9 +190,10 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex flex-col bg-farm-base z-20" style={{ height: '100dvh' }}> 
+      className="fixed inset-0 flex flex-col bg-farm-base z-50 h-[100dvh]"
+    > 
       {/* Header */}
-      <div className="bg-white px-5 py-4 flex items-center border-b border-farm-border shadow-sm shrink-0">
+      <div className="bg-white px-4 py-3 flex items-center border-b border-farm-border shadow-sm shrink-0">
         <button 
           onClick={onBack}
           className="p-2 -ml-2 rounded-xl text-farm-text hover:bg-farm-surface active:scale-90 transition-all"
@@ -187,11 +207,11 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-5 scroll-smooth">
-        <div className="space-y-6 max-w-2xl mx-auto">
+      <div className="flex-1 overflow-y-auto px-3 py-4 scroll-smooth">
+        <div className="space-y-6 max-w-2xl mx-auto w-full">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] rounded-2xl p-4 ${
+              <div className={`max-w-[90%] rounded-2xl p-3.5 ${
                 msg.role === "user" 
                   ? "bg-farm-primary text-white rounded-tr-sm" 
                   : "bg-white border border-farm-border shadow-sm text-farm-text rounded-tl-sm"
@@ -229,35 +249,45 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
 
       {/* Input Area - with safe area padding for Android nav bar */}
       <div 
-        className="bg-white border-t border-farm-border shrink-0"
-        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', padding: '16px 16px max(16px, env(safe-area-inset-bottom))' }}
+        className="bg-white border-t border-farm-border shrink-0 px-3 pt-3"
+        style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
       >
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto w-full">
           {selectedImage && (
             <div className="mb-3 relative inline-block">
-              <img src={selectedImage} alt="Preview" className="h-20 w-20 object-cover rounded-xl border border-farm-border shadow-sm" />
+              <img src={selectedImage} alt="Preview" className="h-16 w-16 object-cover rounded-xl border border-farm-border shadow-sm" />
               <button 
                 onClick={() => { setSelectedImage(null); setSelectedMimeType(null); }}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </button>
             </div>
           )}
           
-          <div className="flex items-end gap-2 bg-farm-base rounded-[24px] p-2 border border-farm-border focus-within:border-farm-primary focus-within:ring-2 focus-within:ring-farm-primary/20 transition-all">
-            <button 
-              onClick={handleImageSelect}
-              className="p-3 text-farm-primary hover:bg-farm-surface rounded-xl transition-colors shrink-0"
-            >
-              <ImageIcon className="w-6 h-6" />
-            </button>
+          <div className="flex items-end gap-1.5 bg-farm-base rounded-[24px] p-1.5 border border-farm-border focus-within:border-farm-primary transition-all">
+            <div className="flex shrink-0">
+              <button 
+                onClick={handleCameraCapture}
+                className="p-2.5 text-farm-primary hover:bg-farm-surface rounded-xl transition-colors"
+                title="Chụp ảnh"
+              >
+                <CameraIcon className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={handleImageSelect}
+                className="p-2.5 text-farm-primary hover:bg-farm-surface rounded-xl transition-colors"
+                title="Chọn từ thư viện"
+              >
+                <ImageIcon className="w-5 h-5" />
+              </button>
+            </div>
             
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Hỏi chuyên gia về cây trồng..."
-              className="flex-1 bg-transparent border-none focus:ring-0 resize-none max-h-32 min-h-[44px] py-3 text-[15px] text-farm-text placeholder:text-farm-text-muted/60"
+              placeholder="Hỏi chuyên gia..."
+              className="flex-1 bg-transparent border-none focus:ring-0 resize-none max-h-32 min-h-[40px] py-2.5 text-[15px] text-farm-text placeholder:text-farm-text-muted/50"
               rows={1}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -267,20 +297,22 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
               }}
             />
 
-            <button 
-              onClick={toggleListening}
-              className={`p-3 rounded-xl transition-colors shrink-0 ${isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'text-farm-primary hover:bg-farm-surface'}`}
-            >
-              {isListening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              <button 
+                onClick={toggleListening}
+                className={`p-2.5 rounded-xl transition-colors ${isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'text-farm-primary hover:bg-farm-surface'}`}
+              >
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
 
-            <button 
-              onClick={handleSend}
-              disabled={isTyping || (!inputText.trim() && !selectedImage)}
-              className="p-3 bg-farm-primary text-white rounded-xl disabled:opacity-50 disabled:bg-farm-primary/50 hover:bg-farm-primary-hover transition-colors shrink-0 shadow-sm"
-            >
-              <Send className="w-6 h-6" />
-            </button>
+              <button 
+                onClick={handleSend}
+                disabled={isTyping || (!inputText.trim() && !selectedImage)}
+                className="p-2.5 bg-farm-primary text-white rounded-[18px] disabled:opacity-50 disabled:bg-farm-primary/30 hover:bg-farm-primary-hover transition-colors shadow-sm"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
