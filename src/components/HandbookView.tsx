@@ -70,27 +70,27 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
   const ContentCoffee = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <section className="bg-white rounded-3xl p-6 border border-farm-border shadow-sm">
-        <div className="flex items-center gap-3 mb-4 text-farm-primary justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-farm-surface rounded-xl">
-              <Info className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-xl">Lịch Trình Canh Tác Thuần Thục</h4>
+        <div className="flex items-start sm:items-center gap-3 mb-5 text-farm-primary">
+          <div className="p-2 bg-farm-surface rounded-xl shrink-0 mt-1 sm:mt-0">
+            <Info className="w-6 h-6" />
           </div>
+          <h4 className="font-bold text-[18px] leading-snug">Lịch Trình Canh Tác Thuần Thục</h4>
         </div>
 
         <div className="space-y-6">
           <div className="relative pl-8 border-l-2 border-dashed border-farm-border pb-6">
             <div className="absolute -left-[9px] top-0 w-4 h-4 bg-orange-400 rounded-full border-4 border-white shadow-sm"></div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[16px] font-bold text-farm-text-header flex items-center">
-                Mùa Khô (T1 - T4)
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 mb-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[15px] font-bold text-farm-text-header">
+                  Mùa Khô (T1-T4)
+                </span>
                 <TTSButton 
                   sectionId="cf-1" 
                   text="Giai đoạn Mùa Khô, từ tháng 1 đến tháng 4. Tập trung vào Tưới và Trổ bông. Cơ chế hóa sinh Tưới ép: Sự khô hạn kéo dài 1 đến 2 tháng làm giảm sút đột ngột Axit Abscisic ở vùng rễ. Khi bà con tưới đẫm nước, áp suất thẩm thấu rễ tăng vọt. Nước đẩy lên cành kết hợp hóc môn đánh thức toàn bộ mầm hoa đang ngủ, ép nụ cương to và bung nở đồng loạt trắng xóa. Dịch hại cần lưu ý: Rệp sáp và Mọt đục cành. Thời tiết khô hạn kéo dài là điều kiện vàng cho rệp sáp phát triển. Cần phun Thuốc ngay khi hoa vừa tàn. Ngoài ra cần đề phòng Bệnh Khô cành khô quả do nấm ẩn nấp từ mùa vụ trước." 
                 />
-              </span>
-              <span className="text-[12px] bg-orange-100 text-orange-700 px-2 py-1 rounded-md font-bold">Tưới & Trổ bông</span>
+              </div>
+              <span className="text-[11px] bg-orange-100 text-orange-700 px-2 py-1 rounded-md font-bold whitespace-nowrap">Tưới & Trổ bông</span>
             </div>
             <div className="space-y-4">
               <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
@@ -118,15 +118,17 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
 
           <div className="relative pl-8 border-l-2 border-dashed border-farm-border pb-6">
             <div className="absolute -left-[9px] top-0 w-4 h-4 bg-farm-secondary rounded-full border-4 border-white shadow-sm"></div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[16px] font-bold text-farm-text-header flex items-center">
-                Đầu Mùa Mưa (T5 - T8)
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 mb-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[15px] font-bold text-farm-text-header">
+                  Mùa Mưa (T5-T8)
+                </span>
                 <TTSButton 
                   sectionId="cf-2" 
                   text="Đầu Mùa Mưa, từ tháng 5 đến tháng 8. Tập trung phát triển trái. Cơ chế hấp thu Phân bón mùn: Vào mùa mưa dầm, đất Ba dan bị tụt pH. Phải bãi chất độn vôi bột hoặc Đô lô mít ngay từ đầu mùa mưa để nâng độ pH, giúp phân vô cơ tan chảy từ từ, trái mới bung to được. Quan trọng: Báo động Bệnh Rỉ Sắt. Mưa ẩm liên tục giúp bào tử đâm thủng khí khổng, rút sạch canxi và diệp lục làm lá rụng trơ cành. Cần vạt bỏ bớt cành tăm, phun chặn bằng thuốc gốc Đồng. Bệnh Tuyến trùng rễ làm rễ nổi cục bướu, chữa bằng nấm đối kháng Tricho đéc ma." 
                 />
-              </span>
-              <span className="text-[12px] bg-farm-surface text-farm-primary px-2 py-1 rounded-md font-bold">Phát triển trái</span>
+              </div>
+              <span className="text-[11px] bg-farm-surface text-farm-primary px-2 py-1 rounded-md font-bold whitespace-nowrap">Phát triển trái</span>
             </div>
             <div className="space-y-4">
               <div className="bg-green-50/50 p-4 rounded-xl border border-green-100">
@@ -161,15 +163,17 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
 
           <div className="relative pl-8">
             <div className="absolute -left-[9px] top-0 w-4 h-4 bg-red-500 rounded-full border-4 border-white shadow-sm"></div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[16px] font-bold text-farm-text-header flex items-center">
-                Thu Hoạch (T9 - T12)
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 mb-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[15px] font-bold text-farm-text-header">
+                  Thu Hoạch (T9-T12)
+                </span>
                 <TTSButton 
                   sectionId="cf-3" 
                   text="Thu Hoạch từ tháng 9 tới tháng 12. Giai đoạn Vào nhân và Chín. Bà con cần bón phân chứa Kali tinh khiết cao vào tháng 9 tới tháng 10 để hạt đông đặc nhân, tích lũy tinh bột tối đa. Tuyệt đối không bón thêm phân đạm lúc này." 
                 />
-              </span>
-              <span className="text-[12px] bg-red-100 text-red-700 px-2 py-1 rounded-md font-bold">Vào nhân & Chín</span>
+              </div>
+              <span className="text-[11px] bg-red-100 text-red-700 px-2 py-1 rounded-md font-bold whitespace-nowrap">Vào nhân & Chín</span>
             </div>
             <div className="space-y-4">
               <p className="text-[14px] text-farm-text-muted leading-relaxed p-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -185,24 +189,24 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
   const ContentDurian = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <section className="bg-white rounded-3xl p-6 border border-farm-border shadow-sm">
-        <div className="flex items-center gap-3 mb-6 text-orange-600">
-          <div className="p-2 bg-orange-50 rounded-xl">
-            <Sun className="w-5 h-5" />
+        <div className="flex items-start sm:items-center gap-3 mb-6 text-orange-600">
+          <div className="p-2 bg-orange-50 rounded-xl shrink-0 mt-1 sm:mt-0">
+            <Sun className="w-6 h-6" />
           </div>
-          <h4 className="font-bold text-xl">Lịch Trình Dona Chuyên Sâu</h4>
+          <h4 className="font-bold text-[18px] leading-snug">Lịch Trình Dona Chuyên Sâu</h4>
         </div>
 
         <div className="space-y-10">
           <div className="relative pl-10 border-l-2 border-dashed border-farm-border pb-8">
             <div className="absolute left-[-16px] top-0 w-8 h-8 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 font-bold text-sm shadow-sm">I</div>
             <div className="mb-3">
-              <h5 className="font-bold text-[16px] text-farm-text-header flex items-center">
-                Làm bông & Sổ nhụy (T11 - T2)
+              <div className="flex items-center gap-1">
+                <h5 className="font-bold text-[15px] text-farm-text-header">Làm bông & Sổ nhụy (T11-T2)</h5>
                 <TTSButton 
                   sectionId="sr-1" 
                   text="Giai đoạn Làm bông và Sổ nhụy từ tháng 11 đến tháng 2 năm sau. Tại sao phải tạo sốc nhiệt xiết nước? Sầu riêng cần cảm nhận sự đe dọa sinh tồn do hạn hán để chuyển sang chế độ sinh sản. Việc xiết dứt điểm nước kết hợp xịt MKP giúp đánh thức nẩy mắt cua đồng loạt. Về nghệ thuật thụ phấn đêm: Giống sầu riêng Đô Na phấn đực văng hạt kém, nhụy cái chín trước nhị đực. Do đó, phải quét phấn từ bông nở lúc 19 giờ sang bông non lúc 21 giờ. Nhờ vậy múi sầu riêng sẽ đậu tròn, đều, không bị lép cong méo." 
                 />
-              </h5>
+              </div>
             </div>
             <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100 space-y-3 mb-4">
               <span className="text-[14px] font-bold text-orange-800 block">Tại sao phải tạo sốc nhiệt? (Xiết nước)</span>
@@ -220,13 +224,13 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
           <div className="relative pl-10 border-l-2 border-dashed border-farm-border pb-8">
             <div className="absolute left-[-16px] top-0 w-8 h-8 bg-farm-surface rounded-2xl flex items-center justify-center text-farm-primary font-bold text-sm shadow-sm">II</div>
             <div className="mb-3">
-              <h5 className="font-bold text-[16px] text-farm-text-header flex items-center">
-                Nuôi trái & Chặn đọt (T3 - T6)
+              <div className="flex items-center gap-1">
+                <h5 className="font-bold text-[15px] text-farm-text-header">Nuôi trái & Chặn đọt (T3-T6)</h5>
                 <TTSButton 
                   sectionId="sr-2" 
                   text="Giai đoạn nuôi trái và chặn đọt từ tháng 3 tới tháng 6. Khi trái non cực kỳ nhạy cảm. Ức chế đọt non là quy luật sống còn. Nếu lá non bung, cây sẽ dồn toàn lực bơm nuôi lá non, dẫn đến rụng trái non đầy gốc. Phải phun chặn ngừa ngay khi thấy le nhú. Dịch hại chính là Rầy nhẩy và Nhện đỏ hút kiệt nhựa đọt non khiến lá rụng trơ cành. Cần luân phiên xịt thuốc Emitraz và Abamectin." 
                 />
-              </h5>
+              </div>
             </div>
             <p className="text-[14px] text-farm-text-muted leading-relaxed mb-4 text-justify p-4 bg-gray-50 rounded-xl border border-gray-100">
               Khi trái ở ngày 45-60 cực kỳ nhạy cảm. <strong>Ức chế cơi đọt là quy luật sống còn.</strong> Nếu đọt non bung, cây sẽ dồn sinh trưởng bơm lên lá non, dẫn đến "đẩy trái" rụng đầy gốc. Phun chặn lá chuyên sâu ngay khi chồi non nhú.
@@ -240,13 +244,13 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
           <div className="relative pl-10">
             <div className="absolute left-[-16px] top-0 w-8 h-8 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 font-bold text-sm shadow-sm">III</div>
             <div className="mb-3">
-              <h5 className="font-bold text-[16px] text-farm-text-header flex items-center">
-                Phục hồi & Mùa mưa (T7 - T10)
+              <div className="flex items-center gap-1">
+                <h5 className="font-bold text-[15px] text-farm-text-header">Phục hồi & Mùa mưa (T7-T10)</h5>
                 <TTSButton 
                   sectionId="sr-3" 
                   text="Giai đoạn phục hồi và mùa mưa, từ tháng 7 đến tháng 10. Chú ý cao độ Bệnh Xì Mủ Thân do nấm phai tốp tho ra gây ra. Nấm theo nước từ đất bắn lên thân vào mạch cây gây xì mủ thối vỏ đen vỏ. Cách tiêu diệt: Dùng cơ chế nội hấp tiêm chích vào mạch cây thuốc Phốt phô nát tinh khiết. Hệ chất lưu kéo thẳng thuốc lên xuống hai chiều. Hoặc cạo sạch vỏ thối rồi quét thuốc Men ta lắc xiu." 
                 />
-              </h5>
+              </div>
             </div>
 
             <div className="bg-red-50 p-4 rounded-xl border border-red-100 mt-3">
