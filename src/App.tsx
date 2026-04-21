@@ -15,18 +15,25 @@ import { PreviewView } from "./components/PreviewView";
 import { AnalyzingView } from "./components/AnalyzingView";
 import { ResultView } from "./components/ResultView";
 import { ErrorView } from "./components/ErrorView";
+import { HistoryListView } from "./components/HistoryListView";
+import { HandbookView } from "./components/HandbookView";
+import { getHistory, saveToHistory, clearHistory, HistoryEntry } from "./services/history";
+import { fetchWeather, WeatherData } from "./services/weather";
 
 export default function App() {
   // App Core State
-  const [appState, setAppState] = useState<"IDLE" | "PREVIEW" | "ANALYZING" | "RESULT" | "ERROR">("IDLE");
+  const [appState, setAppState] = useState<"IDLE" | "PREVIEW" | "ANALYZING" | "RESULT" | "ERROR" | "HISTORY" | "HANDBOOK">("IDLE");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string>("");
   const [plantContext, setPlantContext] = useState<string>("");
   const [analysisResult, setAnalysisResult] = useState<DiseaseAnalysis | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [historyItems, setHistoryItems] = useState<HistoryEntry[]>([]);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<HistoryEntry | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
   
   // Transition for smooth state switching
   const [isPending, startTransition] = useTransition();
@@ -35,10 +42,32 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  // Load API Key on Mount (Rule 8.2: Init Once)
   useEffect(() => {
     const localKey = localStorage.getItem("nongyai_gemini_key");
     if (localKey) setApiKey(localKey);
+    
+    // Load history
+    setHistoryItems(getHistory());
+
+    // Fetch Weather
+    const loadWeather = async () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
+            setWeather(data);
+          },
+          async () => {
+            const data = await fetchWeather(); // Fallback to HCM
+            setWeather(data);
+          }
+        );
+      } else {
+        const data = await fetchWeather();
+        setWeather(data);
+      }
+    };
+    loadWeather();
   }, []);
 
   // Handlers - useCallbacks for stable props (Rule 5.11 / 5.6)
@@ -70,7 +99,28 @@ export default function App() {
     });
   }, []);
 
-  const handleClearHistory = useCallback(() => setChatHistory([]), []);
+  const handleClearHistory = useCallback(() => {
+    clearHistory();
+    setHistoryItems([]);
+    setChatHistory([]);
+  }, []);
+
+  const handleDeleteHistoryItem = useCallback((id: string) => {
+    deleteHistoryItem(id);
+    setHistoryItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
+  const handleOpenHistory = useCallback(() => {
+    setHistoryItems(getHistory());
+    setAppState("HISTORY");
+  }, []);
+
+  const handleSelectHistoryItem = useCallback((item: HistoryEntry) => {
+    setSelectedHistoryItem(item);
+    setAnalysisResult(item.analysis);
+    setImagePreview(item.image);
+    setAppState("RESULT");
+  }, []);
 
   const handleFileSelect = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,9 +152,13 @@ export default function App() {
       const base64Data = imagePreview.split(",")[1];
       const { analysis, newHistory } = await analyzePlantImage(base64Data, imageMimeType, plantContext, chatHistory);
       
+      // Save to persistent history
+      const newEntry = saveToHistory(imagePreview, analysis);
+      
       startTransition(() => {
         setAnalysisResult(analysis);
         setChatHistory(newHistory);
+        setHistoryItems(prev => [newEntry, ...prev]);
         setAppState("RESULT");
       });
     } catch (err: any) {
@@ -129,10 +183,26 @@ export default function App() {
           <AnimatePresence mode="wait">
             {appState === "IDLE" && (
               <LandingView 
-                chatHistoryLength={chatHistory.length}
-                onClearHistory={handleClearHistory}
+                historyCount={historyItems.length}
+                weather={weather}
+                onOpenHistory={handleOpenHistory}
+                onOpenHandbook={() => setAppState("HANDBOOK")}
                 onCameraClick={() => cameraInputRef.current?.click()}
                 onUploadClick={() => fileInputRef.current?.click()}
+              />
+            )}
+
+            {appState === "HANDBOOK" && (
+              <HandbookView onBack={handleReset} />
+            )}
+
+            {appState === "HISTORY" && (
+              <HistoryListView 
+                items={historyItems}
+                onSelectItem={handleSelectHistoryItem}
+                onDeleteItem={handleDeleteHistoryItem}
+                onBack={handleReset}
+                onClearAll={handleClearHistory}
               />
             )}
 
