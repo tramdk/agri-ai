@@ -3,13 +3,18 @@ import { memo } from "react";
 
 interface HeaderProps {
   onOpenSettings: () => void;
+  onLogoClick: () => void;
 }
 
-export const Header = memo(function Header({ onOpenSettings }: HeaderProps) {
+export const Header = memo(function Header({ onOpenSettings, onLogoClick }: HeaderProps) {
   return (
     <header className="bg-white/90 backdrop-blur-xl border-b border-farm-border/40 px-4 py-3 sticky top-0 z-30 flex justify-center">
       <div className="flex justify-between items-center w-full max-w-screen-xl">
-        <div className="flex items-center gap-2.5">
+        <div 
+          className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 active:scale-95 transition-all" 
+          onClick={onLogoClick}
+          role="button"
+        >
           <div className="w-9 h-9 bg-farm-primary rounded-[12px] flex items-center justify-center shadow-md shadow-farm-primary/20">
              <span className="text-white text-lg font-bold">N</span>
           </div>

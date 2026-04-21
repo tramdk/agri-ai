@@ -17,12 +17,14 @@ import { ResultView } from "./components/ResultView";
 import { ErrorView } from "./components/ErrorView";
 import { HistoryListView } from "./components/HistoryListView";
 import { HandbookView } from "./components/HandbookView";
-import { getHistory, saveToHistory, clearHistory, HistoryEntry } from "./services/history";
+import { ExpertChatView } from "./components/ExpertChatView";
+import { getHistory, saveToHistory, clearHistory, deleteHistoryItem, HistoryEntry } from "./services/history";
 import { fetchWeather, WeatherData } from "./services/weather";
+import { OfflineNotice } from "./components/OfflineNotice";
 
 export default function App() {
   // App Core State
-  const [appState, setAppState] = useState<"IDLE" | "PREVIEW" | "ANALYZING" | "RESULT" | "ERROR" | "HISTORY" | "HANDBOOK">("IDLE");
+  const [appState, setAppState] = useState<"IDLE" | "PREVIEW" | "ANALYZING" | "RESULT" | "ERROR" | "HISTORY" | "HANDBOOK" | "EXPERT_CHAT">("IDLE");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string>("");
   const [plantContext, setPlantContext] = useState<string>("");
@@ -177,7 +179,7 @@ export default function App() {
     <div className="min-h-screen bg-farm-base selection:bg-farm-primary/20 flex flex-col items-center">
       <div className="w-full max-w-4xl min-h-screen flex flex-col bg-white md:shadow-2xl overflow-hidden md:border-x border-farm-border relative">
         
-        <Header onOpenSettings={handleOpenSettings} />
+        <Header onOpenSettings={handleOpenSettings} onLogoClick={handleReset} />
 
         <main className="flex-1 p-5 sm:p-8 flex flex-col">
           <AnimatePresence mode="wait">
@@ -187,6 +189,7 @@ export default function App() {
                 weather={weather}
                 onOpenHistory={handleOpenHistory}
                 onOpenHandbook={() => setAppState("HANDBOOK")}
+                onOpenChat={() => setAppState("EXPERT_CHAT")}
                 onCameraClick={() => cameraInputRef.current?.click()}
                 onUploadClick={() => fileInputRef.current?.click()}
               />
@@ -194,6 +197,10 @@ export default function App() {
 
             {appState === "HANDBOOK" && (
               <HandbookView onBack={handleReset} />
+            )}
+
+            {appState === "EXPERT_CHAT" && (
+              <ExpertChatView onBack={handleReset} apiKey={apiKey} />
             )}
 
             {appState === "HISTORY" && (
@@ -249,6 +256,8 @@ export default function App() {
         {isPending && (
           <div className="fixed inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none z-50 transition-opacity" />
         )}
+
+        <OfflineNotice />
       </div>
     </div>
   );
