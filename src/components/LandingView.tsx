@@ -11,6 +11,7 @@ interface LandingViewProps {
   onOpenChat: () => void;
   onCameraClick: () => void;
   onUploadClick: () => void;
+  onWeatherClick?: () => void;
 }
 
 export const LandingView = memo(function LandingView({
@@ -20,7 +21,8 @@ export const LandingView = memo(function LandingView({
   onOpenHandbook,
   onOpenChat,
   onCameraClick,
-  onUploadClick
+  onUploadClick,
+  onWeatherClick
 }: LandingViewProps) {
 
   const getWeatherIcon = (desc: string) => {
@@ -41,10 +43,12 @@ export const LandingView = memo(function LandingView({
     >
       {/* Premium Weather Widget */}
       {weather && (
-        <motion.div
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={onWeatherClick}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative group overflow-hidden bg-gradient-to-br from-farm-primary/10 via-white to-farm-secondary/5 backdrop-blur-xl border border-white shadow-premium rounded-[24px] p-4 mb-4 flex items-center justify-between"
+          className="w-full relative group overflow-hidden bg-gradient-to-br from-farm-primary/10 via-white to-farm-secondary/5 backdrop-blur-xl border border-white shadow-premium rounded-[24px] p-4 mb-4 flex items-center justify-between text-left"
         >
           {/* Decorative shapes */}
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-farm-primary/5 rounded-full blur-2xl"></div>
@@ -75,7 +79,7 @@ export const LandingView = memo(function LandingView({
           <div className="text-right relative z-10">
             <span className="block text-3xl font-display font-black text-farm-primary leading-none tracking-tighter">{weather.temp}°C</span>
           </div>
-        </motion.div>
+        </motion.button>
       )}
 
       {/* Main Banner Compact */}

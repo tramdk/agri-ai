@@ -265,6 +265,7 @@ export default function App() {
                 onOpenChat={() => setAppState("EXPERT_CHAT")}
                 onCameraClick={() => handleImageSource(CameraSource.Camera)}
                 onUploadClick={() => handleImageSource(CameraSource.Photos)}
+                onWeatherClick={loadWeatherWithPosition}
               />
             )}
 

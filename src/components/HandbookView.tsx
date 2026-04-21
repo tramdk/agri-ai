@@ -22,13 +22,17 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
         await TextToSpeech.stop();
         setSpeakingSection(null);
       } else {
-        await TextToSpeech.stop(); // Stop anything else
+        await TextToSpeech.stop().catch(() => {});
         setSpeakingSection(sectionId);
+        
+        // Try to speak with native plugin
         await TextToSpeech.speak({
           text: text,
           lang: 'vi-VN',
-          rate: 0.9, // slightly slower for better clarity
+          rate: 1.0,
           pitch: 1.0,
+          volume: 1.0,
+          category: 'ambient'
         });
         // Note: Capacitor TTS doesn't reliably fire an event when done, 
         // so we just reset state when they click stop manually or play another.
@@ -303,8 +307,7 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
           Cà Phê
         </button>
         <button
-          onClick={() => setActiveTab("SA_RIENG" as any === "SA_RIENG" ? "SAU_RIENG" : "SAU_RIENG")} // Fix type if typo
-          onMouseDown={() => setActiveTab("SAU_RIENG")}
+          onClick={() => setActiveTab("SAU_RIENG")}
           className={`flex-1 py-3 px-4 rounded-xl text-[14px] font-bold transition-all flex items-center justify-center gap-2 ${activeTab === "SAU_RIENG" ? "bg-white text-farm-primary shadow-sm" : "text-farm-text-muted"
             }`}
         >
