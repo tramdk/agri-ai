@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { memo, useState } from "react";
 import imgRiSatCaPhe from "../assets/benh-ri-sat-ca-phe.jpg";
 import imgXiMuSauRieng from "../assets/xi-mu-sau-rieng.png";
-import { TextToSpeech } from '@capacitor/text-to-speech';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Volume2, Square } from "lucide-react";
 
 interface HandbookViewProps {
