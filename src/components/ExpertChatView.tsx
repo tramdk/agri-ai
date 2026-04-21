@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, ChangeEvent } from "react";
-import { motion } from "motion/react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { chatWithExpert } from "../services/gemini";
+import { chatWithExpert, parseGeminiError } from "../services/gemini";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { KeepAwake } from '@capacitor-community/keep-awake';
 
@@ -153,11 +153,12 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
         text: responseText
       }]);
     } catch (err: any) {
-      console.error(err);
+      console.error("Chat Error:", err);
+      const friendlyMsg = parseGeminiError(err);
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "expert",
-        text: "Xin lỗi bà con, hệ thống đang gặp lỗi hoặc API Key chưa đúng. Vui lòng thử lại sau."
+        text: friendlyMsg
       }]);
     } finally {
       setIsTyping(false);

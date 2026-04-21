@@ -5,7 +5,7 @@
 
 import { useState, useRef, useEffect, useCallback, useTransition, type ChangeEvent } from "react";
 import { AnimatePresence } from "motion/react";
-import { analyzePlantImage, DiseaseAnalysis } from "./services/gemini";
+import { analyzePlantImage, DiseaseAnalysis, parseGeminiError } from "./services/gemini";
 
 // Premium Components
 import { Header } from "./components/Header";
@@ -205,12 +205,14 @@ export default function App() {
         setAppState("RESULT");
       });
     } catch (err: any) {
-      console.error(err);
-      if (err.message === "MISSING_API_KEY") {
-        setErrorMsg("Gemini AI API Key chưa được cấu hình. Vui lòng thêm API Key trong phần Cài đặt.");
+      console.error("Analysis Error:", err);
+      const customMsg = parseGeminiError(err);
+      
+      if (customMsg.includes("API Key chưa đúng")) {
+        setErrorMsg(customMsg);
         setShowSettings(true);
       } else {
-        setErrorMsg(err.message || "Đã xảy ra lỗi trong quá trình phân tích hình ảnh.");
+        setErrorMsg(customMsg);
       }
       setAppState("ERROR");
     } finally {

@@ -147,3 +147,38 @@ export async function chatWithExpert(message: string, base64Image?: string, mime
     newHistory: [...contents, modelTurn]
   };
 }
+
+export function parseGeminiError(err: any): string {
+  let msg = err.message || "Lỗi không xác định.";
+  
+  try {
+    if (msg.includes('{"error":')) {
+      // Find the JSON block in the error message if it's mixed with text
+      const match = msg.match(/{[\s\S]*}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        msg = parsed.error?.message || msg;
+      }
+    }
+  } catch(e) {}
+
+  msg = msg.toLowerCase();
+
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("exceeded")) {
+    return "API Key bạn đang dùng đã hết hạn ngạch (Quota) miễn phí hoặc bị quá tải. Bạn hãy vào Cài đặt đổi API Key khác nhé!";
+  }
+  
+  if (msg.includes("api_key_invalid") || msg.includes("api key not valid") || msg.includes("missing")) {
+    return "API Key chưa đúng hoặc bị bỏ trống. Vui lòng vào Cài đặt (nút răng cưa) để nhập 1 dãy API Key hợp lệ nha.";
+  }
+
+  if (msg.includes("fetch") || msg.includes("network")) {
+    return "Điện thoại của bạn đang rớt mạng hoặc 3G yếu. Vui lòng kiểm tra lại kết nối Internet.";
+  }
+
+  if (msg.includes("trích xuất kết quả nhận diện")) {
+    return "Hệ thống AI không nhận diện được bệnh trên ảnh này. Xin vui lòng gửi ảnh khác có bệnh rõ ràng hơn.";
+  }
+
+  return "Đã có lỗi hệ thống xảy ra khi kết nối. Mong bạn thông cảm gửi lại sau.";
+}
