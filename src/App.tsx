@@ -45,6 +45,29 @@ export default function App() {
   // Transition for smooth state switching
   const [isPending, startTransition] = useTransition();
 
+  const handleReset = useCallback(() => {
+    startTransition(() => {
+      setAppState("IDLE");
+      setImagePreview(null);
+      setImageMimeType("");
+      setPlantContext("");
+      setAnalysisResult(null);
+      setErrorMsg("");
+    });
+  }, []);
+
+  const handleRequestLocation = useCallback(async () => {
+    try {
+      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+      setLocationPermission('granted');
+      const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
+      setWeather(data);
+    } catch (err) {
+      console.warn('Location denied:', err);
+      setLocationPermission('denied');
+    }
+  }, []);
+
   useEffect(() => {
     const localKey = localStorage.getItem("nongyai_gemini_key");
     if (localKey) setApiKey(localKey);
@@ -119,17 +142,9 @@ export default function App() {
     }
   };
 
-  const handleRequestLocation = useCallback(async () => {
-    try {
-      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
-      setLocationPermission('granted');
-      const data = await fetchWeather(position.coords.latitude, position.coords.longitude);
-      setWeather(data);
-    } catch (err) {
-      console.warn('Location denied:', err);
-      setLocationPermission('denied');
     }
   }, []);
+
 
   // Handlers - useCallbacks for stable props (Rule 5.11 / 5.6)
   const handleOpenSettings = useCallback(() => setShowSettings(true), []);
@@ -148,17 +163,6 @@ export default function App() {
       handleReset();
     }
   }, [appState, errorMsg]);
-
-  const handleReset = useCallback(() => {
-    startTransition(() => {
-      setAppState("IDLE");
-      setImagePreview(null);
-      setImageMimeType("");
-      setPlantContext("");
-      setAnalysisResult(null);
-      setErrorMsg("");
-    });
-  }, []);
 
   const handleClearHistory = useCallback(() => {
     clearHistory();
