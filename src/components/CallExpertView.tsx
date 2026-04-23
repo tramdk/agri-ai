@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { PhoneOff, Mic, MicOff, Image as ImageIcon, X, Camera as CameraIcon } from "lucide-react";
+import { PhoneOff, Mic, MicOff, Image as ImageIcon, X, Camera as CameraIcon, Volume2, Volume1 } from "lucide-react";
 import { chatWithExpert } from "../services/gemini";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
@@ -16,12 +16,15 @@ interface CallExpertViewProps {
 export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
   const [status, setStatus] = useState<"connecting" | "listening" | "analyzing" | "speaking" | "error">("connecting");
   const [isMuted, setIsMuted] = useState(false);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedMimeType, setSelectedMimeType] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   
   const webRecognitionRef = useRef<any>(null);
   const isComponentMounted = useRef(true);
+  const isMutedRef = useRef(false); // Use ref to avoid stale closure in async callbacks
+  const statusRef = useRef<"connecting" | "listening" | "analyzing" | "speaking" | "error">("connecting");
 
   // Initialize call
   useEffect(() => {
@@ -33,8 +36,9 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
       if (!isComponentMounted.current) return;
       
       setStatus("speaking");
+      statusRef.current = "speaking";
       await speakText("Chào bà con. Tôi là Nông Y AI. Xin mời bà con nói.");
-      if (isComponentMounted.current && !isMuted) {
+      if (isComponentMounted.current && !isMutedRef.current) {
         startListening();
       }
     };
@@ -56,6 +60,7 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
         text: cleanText,
         lang: 'vi-VN',
         rate: 1.0,
+        volume: isSpeakerOn ? 1.0 : 0.2,
       });
     } catch (err) {
       console.warn("TTS Error:", err);
@@ -63,46 +68,47 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
   };
 
   const processUserInput = async (text: string) => {
-    if (!text.trim() && !selectedImage) return;
+    await processUserInputWithImage(text, undefined, undefined);
+  };
+
+  const processUserInputWithImage = async (text: string, base64Code?: string, mimeType?: string) => {
+    if (!text.trim() && !base64Code) return;
     if (!apiKey) {
       setStatus("error");
+      statusRef.current = "error";
       speakText("Vui lòng cấu hình API Key trước khi gọi.");
       return;
     }
 
     setStatus("analyzing");
-    
-    let base64Code = undefined;
-    if (selectedImage) {
-        base64Code = selectedImage.split(",")[1];
-    }
-    
-    const currentMimeType = selectedMimeType;
-    // Clear image after capturing to not send it repeatedly
+    statusRef.current = "analyzing";
     setSelectedImage(null);
     setSelectedMimeType(null);
 
     try {
       await KeepAwake.keepAwake().catch(() => {});
-      const { responseText, newHistory } = await chatWithExpert(text, base64Code, currentMimeType || undefined, history);
+      const { responseText, newHistory } = await chatWithExpert(text, base64Code, mimeType, history);
       
       if (!isComponentMounted.current) return;
       
       setHistory(newHistory);
       setStatus("speaking");
+      statusRef.current = "speaking";
       
       await speakText(responseText);
       
-      if (isComponentMounted.current && !isMuted) {
+      if (isComponentMounted.current && !isMutedRef.current) {
         startListening();
       } else if (isComponentMounted.current) {
          setStatus("listening");
+         statusRef.current = "listening";
       }
 
     } catch (err: any) {
       if (!isComponentMounted.current) return;
       console.error("Chat Error:", err);
       setStatus("error");
+      statusRef.current = "error";
       await speakText("Xin lỗi, tôi không thể xử lý yêu cầu lúc này.");
       setTimeout(() => {
         if (isComponentMounted.current) startListening();
@@ -113,8 +119,9 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
   };
 
   const startListening = async () => {
-    if (!isComponentMounted.current || isMuted) return;
+    if (!isComponentMounted.current || isMutedRef.current) return;
     setStatus("listening");
+    statusRef.current = "listening";
     
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -135,9 +142,10 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
         };
         
         recognition.onend = () => {
-          // If stopped naturally without result, and still listening mode, restart (or wait for user)
-          if (isComponentMounted.current && status === "listening") {
-            // For simplicity, just let the user tap mic to speak again if it times out
+          // Only restart if still in listening state (not if processUserInput took over)
+          if (isComponentMounted.current && statusRef.current === "listening") {
+            // timed out without result — reset state so user can tap mic
+            setStatus("listening");
           }
         };
 
@@ -180,11 +188,16 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
-    if (!isMuted) {
+    const nextMuted = !isMutedRef.current;
+    isMutedRef.current = nextMuted;
+    setIsMuted(nextMuted);
+    if (nextMuted) {
       // becoming muted
       stopListening();
-      if (status === "listening") setStatus("connecting"); // simple state reset
+      if (statusRef.current === "listening") {
+        setStatus("connecting");
+        statusRef.current = "connecting";
+      }
     } else {
       // becoming unmuted
       startListening();
@@ -200,15 +213,20 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
         allowEditing: false,
       });
       if (photo.dataUrl) {
+        const mime = photo.format === 'png' ? 'image/png' : 'image/jpeg';
         setSelectedImage(photo.dataUrl);
-        setSelectedMimeType(photo.format === 'png' ? 'image/png' : 'image/jpeg');
-        // Tell AI about the image
-        if (status === "listening") {
-            processUserInput("Tôi vừa gửi cho bạn một hình ảnh, hãy phân tích nó.");
+        setSelectedMimeType(mime);
+        // Pass image directly to avoid async setState race condition
+        if (statusRef.current === "listening" || statusRef.current === "connecting") {
+          const base64 = photo.dataUrl.split(",")[1];
+          stopListening();
+          await processUserInputWithImage("Tôi vừa gửi cho bạn một hình ảnh, hãy phân tích và chẩn đoán bệnh trên cây.", base64, mime);
         }
       }
     } catch (err: any) {
-      console.log('Camera error:', err);
+      if (!err.message?.includes('cancelled')) {
+        console.log('Camera error:', err);
+      }
     }
   };
 
@@ -289,33 +307,40 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
       </div>
 
       {/* Bottom Controls */}
-      <div className="bg-slate-800 rounded-t-[40px] p-8 pb-12 flex items-center justify-center gap-8">
+      <div className="bg-slate-800 rounded-t-[40px] p-6 pb-12 flex items-center justify-center gap-4 sm:gap-6">
         <button 
-          onClick={() => handleImageSource(CameraSource.Photos)}
-          className="w-14 h-14 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center hover:bg-slate-600 transition-colors active:scale-90"
+          onClick={() => setIsSpeakerOn(!isSpeakerOn)}
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isSpeakerOn ? 'bg-white text-slate-900' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
         >
-          <ImageIcon className="w-6 h-6" />
+          {isSpeakerOn ? <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume1 className="w-5 h-5 sm:w-6 sm:h-6" />}
         </button>
-        
+
         <button 
           onClick={toggleMute}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isMuted ? 'bg-white text-slate-900' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-colors active:scale-90 ${isMuted ? 'bg-white text-slate-900' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
         >
-          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+          {isMuted ? <MicOff className="w-5 h-5 sm:w-6 sm:h-6" /> : <Mic className="w-5 h-5 sm:w-6 sm:h-6" />}
         </button>
 
         <button 
           onClick={onEndCall}
-          className="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-500/30 hover:bg-red-600 transition-colors active:scale-90"
+          className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-500/30 hover:bg-red-600 transition-colors active:scale-90 flex-shrink-0"
         >
-          <PhoneOff className="w-7 h-7" />
+          <PhoneOff className="w-7 h-7 sm:w-8 sm:h-8" />
         </button>
 
         <button 
           onClick={() => handleImageSource(CameraSource.Camera)}
-          className="w-14 h-14 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center hover:bg-slate-600 transition-colors active:scale-90"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center hover:bg-slate-600 transition-colors active:scale-90"
         >
-          <CameraIcon className="w-6 h-6" />
+          <CameraIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+
+        <button 
+          onClick={() => handleImageSource(CameraSource.Photos)}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center hover:bg-slate-600 transition-colors active:scale-90"
+        >
+          <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       </div>
     </motion.div>

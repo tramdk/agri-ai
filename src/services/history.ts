@@ -8,6 +8,7 @@ export interface HistoryEntry {
 }
 
 const STORAGE_KEY = "nongyai_analysis_history";
+const MAX_HISTORY = 30;
 
 export const getHistory = (): HistoryEntry[] => {
   try {
@@ -28,7 +29,7 @@ export const saveToHistory = (image: string, analysis: DiseaseAnalysis): History
     analysis,
   };
   
-  const updatedHistory = [newEntry, ...history];
+  const updatedHistory = [newEntry, ...history].slice(0, MAX_HISTORY);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
   return newEntry;
 };

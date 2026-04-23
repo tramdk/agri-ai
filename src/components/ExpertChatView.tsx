@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff, Camera as CameraIcon, Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft, Send, Mic, Image as ImageIcon, X, MicOff, Camera as CameraIcon, Volume2, VolumeX } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { chatWithExpert, parseGeminiError } from "../services/gemini";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -37,7 +37,6 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   
-  const fileInputRef = useRef<HTMLInputElement | null>(null); // kept for web fallback only
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const webRecognitionRef = useRef<any>(null);
   
@@ -58,8 +57,10 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    // Check and request permissions on mount for smoother UX
-    SpeechRecognition.requestPermissions().catch(console.warn);
+    // Check and request permissions on mount for smoother UX — only on native
+    if (Capacitor.isNativePlatform()) {
+      SpeechRecognition.requestPermissions().catch(console.warn);
+    }
   }, []);
 
   const handleImageSelect = useCallback(async () => {
@@ -100,25 +101,21 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
     }
   }, []);
 
-  // Setup native specific listeners
   useEffect(() => {
-    // Add result listener
+    // Add result listener (native only)
     const resultListener = SpeechRecognition.addListener('partialResults', (data: { matches: string[] }) => {
       if (data.matches && data.matches.length > 0) {
-        // Taking the best match
         setInputText(data.matches[0]);
       }
     });
 
-    // Android specific: the service usually stops itself after speech is done
-    // We listen for that to update UI state
-    const stopListener = (window as any).addEventListener('speechRecognitionStopped', () => {
-      setIsListening(false);
-    });
+    // Android: listen for recognition stopped event to reset UI state
+    const speechStoppedHandler = () => setIsListening(false);
+    window.addEventListener('speechRecognitionStopped', speechStoppedHandler);
 
     return () => {
       resultListener.remove();
-      if (stopListener) (window as any).removeEventListener('speechRecognitionStopped', stopListener);
+      window.removeEventListener('speechRecognitionStopped', speechStoppedHandler);
     };
   }, []);
 
