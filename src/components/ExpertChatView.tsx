@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff, Camera as CameraIcon } from "lucide-react";
+import { ChevronLeft, Send, Mic, Image as ImageIcon, X, Loader2, MicOff, Camera as CameraIcon, Volume2, VolumeX } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { chatWithExpert, parseGeminiError } from "../services/gemini";
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { KeepAwake } from '@capacitor-community/keep-awake';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { Capacitor } from '@capacitor/core';
 
 interface ExpertChatViewProps {
   onBack: () => void;
@@ -33,13 +35,23 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
   const [selectedMimeType, setSelectedMimeType] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   
   const fileInputRef = useRef<HTMLInputElement | null>(null); // kept for web fallback only
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const webRecognitionRef = useRef<any>(null);
   
   // Track continuous raw history for Gemini
   const [geminiHistory, setGeminiHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    return () => {
+      TextToSpeech.stop().catch(() => {});
+      if (webRecognitionRef.current) {
+        webRecognitionRef.current.stop();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -112,12 +124,51 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
 
   const toggleListening = async () => {
     if (isListening) {
-      await SpeechRecognition.stop().catch(() => {});
+      if (Capacitor.isNativePlatform()) {
+        await SpeechRecognition.stop().catch(() => {});
+      } else if (webRecognitionRef.current) {
+        webRecognitionRef.current.stop();
+      }
       setIsListening(false);
       return;
     }
 
     try {
+      if (!Capacitor.isNativePlatform()) {
+        const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognitionAPI) {
+          alert("Trình duyệt của bạn không hỗ trợ tính năng nhận diện giọng nói này.");
+          return;
+        }
+
+        setIsListening(true);
+        const recognition = new SpeechRecognitionAPI();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = true;
+        recognition.continuous = false; // Stop when the user stops speaking
+        
+        recognition.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((result: any) => result[0])
+            .map((result: any) => result.transcript)
+            .join('');
+          setInputText(transcript);
+        };
+        
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error("Web Speech API Error:", event.error);
+          setIsListening(false);
+        };
+
+        webRecognitionRef.current = recognition;
+        recognition.start();
+        return;
+      }
+
       const { available } = await SpeechRecognition.available();
       if (!available) {
         alert("Điện thoại của bạn không hỗ trợ tính năng nhận diện giọng nói này.");
@@ -191,6 +242,18 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
         role: "expert",
         text: responseText
       }]);
+      
+      if (isVoiceEnabled) {
+        // Stop current speech if any
+        await TextToSpeech.stop().catch(() => {});
+        // Basic markdown cleanup for TTS
+        const cleanText = responseText.replace(/[#*`_]/g, '');
+        TextToSpeech.speak({
+          text: cleanText,
+          lang: 'vi-VN',
+          rate: 1.0,
+        }).catch(err => console.warn("TTS Error:", err));
+      }
     } catch (err: any) {
       console.error("Chat Error:", err);
       const friendlyMsg = parseGeminiError(err);
@@ -199,6 +262,15 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
         role: "expert",
         text: friendlyMsg
       }]);
+      
+      if (isVoiceEnabled) {
+        await TextToSpeech.stop().catch(() => {});
+        TextToSpeech.speak({
+          text: friendlyMsg,
+          lang: 'vi-VN',
+          rate: 1.0,
+        }).catch(err => console.warn("TTS Error:", err));
+      }
     } finally {
       setIsTyping(false);
       await KeepAwake.allowSleep().catch(() => {});
@@ -234,9 +306,25 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-farm-surface/50 rounded-full border border-farm-border/50">
-          <span className="text-[10px] font-bold text-farm-text-muted">Bà Con</span>
-          <span className="text-xs">🌿</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              if (isVoiceEnabled) TextToSpeech.stop().catch(() => {});
+              setIsVoiceEnabled(!isVoiceEnabled);
+            }}
+            className={`p-2 rounded-full border transition-colors ${
+              isVoiceEnabled 
+                ? 'bg-farm-primary/10 text-farm-primary border-farm-primary/20' 
+                : 'bg-farm-surface/50 text-farm-text-muted border-farm-border/50'
+            }`}
+            title={isVoiceEnabled ? "Tắt đọc âm thanh" : "Bật đọc âm thanh"}
+          >
+            {isVoiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+          </button>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-farm-surface/50 rounded-full border border-farm-border/50">
+            <span className="text-[10px] font-bold text-farm-text-muted">Bà Con</span>
+            <span className="text-xs">🌿</span>
+          </div>
         </div>
       </div>
 

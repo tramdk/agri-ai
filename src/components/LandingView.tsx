@@ -9,6 +9,7 @@ interface LandingViewProps {
   onOpenHistory: () => void;
   onOpenHandbook: () => void;
   onOpenChat: () => void;
+  onOpenCall: () => void;
   onCameraClick: () => void;
   onUploadClick: () => void;
   onWeatherClick?: () => void;
@@ -20,6 +21,7 @@ export const LandingView = memo(function LandingView({
   onOpenHistory,
   onOpenHandbook,
   onOpenChat,
+  onOpenCall,
   onCameraClick,
   onUploadClick,
   onWeatherClick
@@ -215,21 +217,35 @@ export const LandingView = memo(function LandingView({
       </div>
 
       {/* AI Chat Expert */}
-      <button
-        onClick={onOpenChat}
-        className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-[24px] p-4 shadow-sm hover:shadow-md transition-all active:scale-95 group flex items-center justify-between relative overflow-hidden"
-      >
-        <div className="absolute right-[-20px] top-[-20px] w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-        <div className="flex items-center gap-3 relative z-10 w-full text-left">
-          <div className="bg-white/20 p-2 rounded-[12px] shrink-0">
-            <span className="text-xl leading-none block">👨‍🌾</span>
+      <div className="grid grid-cols-2 gap-3 pb-4">
+        <button
+          onClick={onOpenChat}
+          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-[24px] p-4 shadow-sm hover:shadow-md transition-all active:scale-95 group flex flex-col items-center justify-center relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-full bg-white/10 rounded-full blur-2xl"></div>
+          <div className="bg-white/20 p-3 rounded-[16px] mb-2 relative z-10">
+            <span className="text-2xl leading-none block">💬</span>
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold font-display text-[15px] leading-tight text-white/95">Trò chuyện cùng Chuyên Gia</h3>
-            <p className="text-[11px] text-white/80 mt-0.5 font-medium tracking-wide">Nhắn tin hoặc gọi thoại trực tiếp</p>
+          <div className="text-center relative z-10">
+            <h3 className="font-bold font-display text-[15px] leading-tight text-white/95">Nhắn Tin</h3>
+            <p className="text-[10px] text-white/80 mt-1 font-medium">Hỏi đáp với AI</p>
           </div>
-        </div>
-      </button>
+        </button>
+
+        <button
+          onClick={onOpenCall}
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[24px] p-4 shadow-sm hover:shadow-md transition-all active:scale-95 group flex flex-col items-center justify-center relative overflow-hidden"
+        >
+          <div className="absolute bottom-0 right-0 w-full h-full bg-white/10 rounded-full blur-2xl"></div>
+          <div className="bg-white/20 p-3 rounded-[16px] mb-2 relative z-10">
+            <span className="text-2xl leading-none block">📞</span>
+          </div>
+          <div className="text-center relative z-10">
+            <h3 className="font-bold font-display text-[15px] leading-tight text-white/95">Gọi Trực Tiếp</h3>
+            <p className="text-[10px] text-white/80 mt-1 font-medium">Nói chuyện trực tuyến</p>
+          </div>
+        </button>
+      </div>
 
       {/* Visual spacer to ensure content doesn't hit the very bottom indicator */}
       <div className="h-4 shrink-0"></div>

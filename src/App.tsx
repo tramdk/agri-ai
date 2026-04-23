@@ -18,6 +18,7 @@ import { ErrorView } from "./components/ErrorView";
 import { HistoryListView } from "./components/HistoryListView";
 import { HandbookView } from "./components/HandbookView";
 import { ExpertChatView } from "./components/ExpertChatView";
+import { CallExpertView } from "./components/CallExpertView";
 import { getHistory, saveToHistory, clearHistory, deleteHistoryItem, HistoryEntry } from "./services/history";
 import { fetchWeather, WeatherData } from "./services/weather";
 import { OfflineNotice } from "./components/OfflineNotice";
@@ -28,7 +29,7 @@ import { App as CapApp } from '@capacitor/app';
 
 export default function App() {
   // App Core State
-  const [appState, setAppState] = useState<"IDLE" | "PREVIEW" | "ANALYZING" | "RESULT" | "ERROR" | "HISTORY" | "HANDBOOK" | "EXPERT_CHAT">("IDLE");
+  const [appState, setAppState] = useState<"IDLE" | "PREVIEW" | "ANALYZING" | "RESULT" | "ERROR" | "HISTORY" | "HANDBOOK" | "EXPERT_CHAT" | "CALL_EXPERT">("IDLE");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string>("");
   const [plantContext, setPlantContext] = useState<string>("");
@@ -263,6 +264,7 @@ export default function App() {
                 onOpenHistory={handleOpenHistory}
                 onOpenHandbook={() => setAppState("HANDBOOK")}
                 onOpenChat={() => setAppState("EXPERT_CHAT")}
+                onOpenCall={() => setAppState("CALL_EXPERT")}
                 onCameraClick={() => handleImageSource(CameraSource.Camera)}
                 onUploadClick={() => handleImageSource(CameraSource.Photos)}
                 onWeatherClick={loadWeatherWithPosition}
@@ -275,6 +277,10 @@ export default function App() {
 
             {appState === "EXPERT_CHAT" && (
               <ExpertChatView onBack={handleReset} apiKey={apiKey} />
+            )}
+
+            {appState === "CALL_EXPERT" && (
+              <CallExpertView onEndCall={handleReset} apiKey={apiKey} />
             )}
 
             {appState === "HISTORY" && (

@@ -63,8 +63,13 @@ export async function analyzePlantImage(base64Data: string, mimeType: string, pl
     ? `Tên cây do nông dân cung cấp: "${plantContext}". `
     : "";
 
-  const promptText = `Bạn là kỹ sư nông nghiệp chuyên môn cao. Đây là hình ảnh mới của cây trồng. ${contextInstruction}
-QUAN TRỌNG: Hãy phân tích dựa trên sự liên kết với lịch sử chẩn đoán các hình ảnh trước đó (nếu có ở lượt chat trước). Trả lời ngày càng chuyên sâu, đi thẳng vào nguyên nhân gốc rễ, phân tích tiến triển bệnh hoặc xu hướng vườn, thay vì chỉ mô tả bề mặt. Tư vấn giải pháp điều trị và phòng ngừa mang tính toàn diện, triệt để. Trả về JSON theo đúng schema.`;
+  const promptText = `Bạn là kỹ sư nông nghiệp chuyên môn cao chuyên chẩn đoán bệnh cây trồng. Hãy phân tích hình ảnh cây trồng sau đây. ${contextInstruction}
+YÊU CẦU QUAN TRỌNG:
+1. Nhận diện chính xác tên loại cây.
+2. Chẩn đoán đúng tên bệnh hoặc sâu hại dựa trên các triệu chứng thấy rõ trong ảnh. Nếu không có bệnh, ghi 'Khỏe mạnh'.
+3. Liệt kê các triệu chứng nhận biết được từ hình ảnh.
+4. Đề xuất các phương pháp điều trị (hóa học, sinh học, canh tác...) cụ thể, chi tiết, an toàn và hiệu quả.
+Hãy phân tích kỹ lưỡng và trả về kết quả định dạng JSON theo đúng schema.`;
 
   const userTurn = {
     role: "user",

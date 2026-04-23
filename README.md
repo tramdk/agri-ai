@@ -1,7 +1,7 @@
 # 🌿 Nông Y AI - Trợ Lý Nông Nghiệp Thông Minh
 
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" alt="Nông Y AI Banner" width="100%" style="border-radius: 24px; margin-bottom: 20px;" />
+ 
 
   <img src="/public/icon.png" alt="Nông Y AI Icon" width="128" height="128" style="border-radius: 32px; margin-bottom: 20px;" />
 
