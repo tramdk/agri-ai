@@ -68,7 +68,8 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       const photo = await Camera.getPhoto({
         source: CameraSource.Photos,
         resultType: CameraResultType.Base64,
-        quality: 80,
+        quality: 60,
+        width: 800,
         allowEditing: false,
       });
       if (photo.base64String) {
@@ -90,7 +91,8 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       const photo = await Camera.getPhoto({
         source: CameraSource.Camera,
         resultType: CameraResultType.Base64,
-        quality: 80,
+        quality: 60,
+        width: 800,
         allowEditing: false,
       });
       if (photo.base64String) {
@@ -251,11 +253,22 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
         await TextToSpeech.stop().catch(() => {});
         // Basic markdown cleanup for TTS
         const cleanText = responseText.replace(/[#*`_]/g, '');
-        TextToSpeech.speak({
-          text: cleanText,
-          lang: 'vi-VN',
-          rate: 1.0,
-        }).catch(err => console.warn("TTS Error:", err));
+        const speakFallback = async (textToSpeak: string) => {
+          try {
+            await TextToSpeech.speak({ text: textToSpeak, lang: 'vi-VN', rate: 1.0 });
+          } catch (err) {
+            console.warn("TTS vi-VN failed, trying fallback:", err);
+            try {
+              await TextToSpeech.speak({ text: textToSpeak, rate: 1.0 });
+            } catch (fallbackErr) {
+              console.warn("TTS fallback failed:", fallbackErr);
+              if (Capacitor.isNativePlatform()) {
+                alert("Không thể phát giọng nói. Vui lòng vào Cài đặt điện thoại -> Văn bản thành giọng nói (TTS) -> Tải dữ liệu Tiếng Việt cho Google TTS.");
+              }
+            }
+          }
+        };
+        speakFallback(cleanText);
       }
     } catch (err: any) {
       console.error("Chat Error:", err);
@@ -268,11 +281,19 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
       
       if (isVoiceEnabled) {
         await TextToSpeech.stop().catch(() => {});
-        TextToSpeech.speak({
-          text: friendlyMsg,
-          lang: 'vi-VN',
-          rate: 1.0,
-        }).catch(err => console.warn("TTS Error:", err));
+        const speakFallback = async (textToSpeak: string) => {
+          try {
+            await TextToSpeech.speak({ text: textToSpeak, lang: 'vi-VN', rate: 1.0 });
+          } catch (err) {
+            console.warn("TTS vi-VN failed, trying fallback:", err);
+            try {
+              await TextToSpeech.speak({ text: textToSpeak, rate: 1.0 });
+            } catch (fallbackErr) {
+              console.warn("TTS fallback failed:", fallbackErr);
+            }
+          }
+        };
+        speakFallback(friendlyMsg);
       }
     } finally {
       setIsTyping(false);

@@ -5,6 +5,7 @@ import imgRiSatCaPhe from "../assets/benh-ri-sat-ca-phe.jpg";
 import imgXiMuSauRieng from "../assets/xi-mu-sau-rieng.png";
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Volume2, Square } from "lucide-react";
+import { Capacitor } from '@capacitor/core';
 
 interface HandbookViewProps {
   onBack: () => void;
@@ -26,21 +27,37 @@ export const HandbookView = memo(function HandbookView({ onBack }: HandbookViewP
         setSpeakingSection(sectionId);
         
         // Try to speak with native plugin
-        await TextToSpeech.speak({
-          text: text,
-          lang: 'vi-VN',
-          rate: 1.0,
-          pitch: 1.0,
-          volume: 1.0,
-          category: 'ambient'
-        });
-        // Note: Capacitor TTS doesn't reliably fire an event when done, 
-        // so we just reset state when they click stop manually or play another.
+        try {
+          await TextToSpeech.speak({
+            text: text,
+            lang: 'vi-VN',
+            rate: 1.0,
+            pitch: 1.0,
+            volume: 1.0,
+            category: 'ambient'
+          });
+        } catch (nativeErr) {
+          console.warn("TTS vi-VN failed, trying without lang param:", nativeErr);
+          try {
+            await TextToSpeech.speak({
+              text: text,
+              rate: 1.0,
+              pitch: 1.0,
+              volume: 1.0,
+              category: 'ambient'
+            });
+          } catch (fallbackErr) {
+            console.warn("TTS fallback failed:", fallbackErr);
+            throw fallbackErr;
+          }
+        }
       }
     } catch (e) {
-      console.warn("TTS Error (possibly web platform):", e);
-      // Web fallback
-      if ('speechSynthesis' in window) {
+      console.warn("TTS Error Final:", e);
+      if (Capacitor.isNativePlatform()) {
+        alert("Không thể phát giọng nói. Vui lòng vào Cài đặt điện thoại -> Văn bản thành giọng nói (TTS) -> Tải dữ liệu Tiếng Việt cho Google TTS.");
+      } else if ('speechSynthesis' in window) {
+        // Web fallback
         if (speakingSection === sectionId) {
           window.speechSynthesis.cancel();
           setSpeakingSection(null);

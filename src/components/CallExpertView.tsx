@@ -63,19 +63,42 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
     try {
       await TextToSpeech.stop().catch(() => {});
       const cleanText = text.replace(/[#*`_]/g, '');
-      await TextToSpeech.speak({
-        text: cleanText,
-        lang: 'vi-VN',
-        rate: 1.0,
-        volume: isSpeakerOn ? 1.0 : 0.2,
-      });
-    } catch (err) {
-      console.warn("TTS Error:", err);
+      
+      try {
+        await TextToSpeech.speak({
+          text: cleanText,
+          lang: 'vi-VN',
+          rate: 1.0,
+          volume: isSpeakerOn ? 1.0 : 0.2,
+        });
+      } catch (err) {
+        // Fallback if vi-VN fails or TTS engine isn't ready
+        console.warn("TTS vi-VN failed, trying without lang param:", err);
+        await TextToSpeech.speak({
+          text: cleanText,
+          rate: 1.0,
+          volume: isSpeakerOn ? 1.0 : 0.2,
+        });
+      }
+    } catch (err: any) {
+      console.warn("TTS Error Final:", err);
+      if (Capacitor.isNativePlatform()) {
+        alert("Không thể phát giọng nói. Vui lòng vào Cài đặt điện thoại -> Văn bản thành giọng nói (TTS) -> Tải dữ liệu Tiếng Việt cho Google TTS.");
+      }
     }
   };
 
   const processUserInput = async (text: string) => {
-    await processUserInputWithImage(text, undefined, undefined);
+    let base64Code = undefined;
+    let mime = undefined;
+    if (selectedImage) {
+        base64Code = selectedImage.split(",")[1];
+        mime = selectedMimeType || undefined;
+    }
+    // Clear it so we don't send the same image twice
+    setSelectedImage(null);
+    setSelectedMimeType(null);
+    await processUserInputWithImage(text, base64Code, mime);
   };
 
   const processUserInputWithImage = async (text: string, base64Code?: string, mimeType?: string) => {
@@ -89,6 +112,9 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
 
     setStatus("analyzing");
     statusRef.current = "analyzing";
+    
+    // In case processUserInputWithImage is called directly (e.g. from handleImageSource)
+    // we also clear the selected image state so it disappears from UI
     setSelectedImage(null);
     setSelectedMimeType(null);
 
@@ -215,8 +241,9 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
     try {
       const photo = await Camera.getPhoto({
         source,
-        resultType: CameraResultType.Base64, // Base64 is safer on Android than DataUrl
-        quality: 80,
+        resultType: CameraResultType.Base64,
+        quality: 60, // Giảm quality xuống để tránh lỗi out of memory trên Android
+        width: 800,  // Giới hạn kích thước ảnh
         allowEditing: false,
       });
       if (photo.base64String) {
@@ -226,8 +253,9 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
         setSelectedImage(dataUrl);
         setSelectedMimeType(mime);
         
-        // Pass image directly to avoid async setState race condition
-        if (statusRef.current === "listening" || statusRef.current === "connecting") {
+        // Chỉ gửi thẳng nếu đang trong trạng thái gọi thoại rảnh tay (nghe/kết nối)
+        // và không gửi lại nếu user vừa chọn xong (để ảnh còn hiển thị trên màn hình)
+        if (statusRef.current === "listening") {
           const base64 = photo.base64String;
           stopListening();
           await processUserInputWithImage("Tôi vừa gửi cho bạn một hình ảnh, hãy phân tích và chẩn đoán bệnh trên cây.", base64, mime);
