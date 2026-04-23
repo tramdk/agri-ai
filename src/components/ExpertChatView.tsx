@@ -67,17 +67,20 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
     try {
       const photo = await Camera.getPhoto({
         source: CameraSource.Photos,
-        resultType: CameraResultType.DataUrl,
-        quality: 85,
+        resultType: CameraResultType.Base64,
+        quality: 80,
         allowEditing: false,
       });
-      if (photo.dataUrl) {
-        setSelectedImage(photo.dataUrl);
-        setSelectedMimeType(photo.format === 'png' ? 'image/png' : 'image/jpeg');
+      if (photo.base64String) {
+        const mime = photo.format === 'png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = `data:${mime};base64,${photo.base64String}`;
+        setSelectedImage(dataUrl);
+        setSelectedMimeType(mime);
       }
     } catch (err: any) {
       if (!err.message?.includes('cancelled')) {
         console.error('Gallery error:', err);
+        alert(`Lỗi: ${err.message}`);
       }
     }
   }, []);
@@ -86,17 +89,20 @@ export const ExpertChatView = ({ onBack, apiKey }: ExpertChatViewProps) => {
     try {
       const photo = await Camera.getPhoto({
         source: CameraSource.Camera,
-        resultType: CameraResultType.DataUrl,
-        quality: 85,
+        resultType: CameraResultType.Base64,
+        quality: 80,
         allowEditing: false,
       });
-      if (photo.dataUrl) {
-        setSelectedImage(photo.dataUrl);
-        setSelectedMimeType(photo.format === 'png' ? 'image/png' : 'image/jpeg');
+      if (photo.base64String) {
+        const mime = photo.format === 'png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = `data:${mime};base64,${photo.base64String}`;
+        setSelectedImage(dataUrl);
+        setSelectedMimeType(mime);
       }
     } catch (err: any) {
       if (!err.message?.includes('cancelled')) {
         console.error('Camera error:', err);
+        alert(`Lỗi: ${err.message}`);
       }
     }
   }, []);

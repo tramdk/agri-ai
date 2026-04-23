@@ -30,6 +30,13 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
   useEffect(() => {
     isComponentMounted.current = true;
     
+    // Request permissions right away on native platform
+    if (Capacitor.isNativePlatform()) {
+      SpeechRecognition.requestPermissions().catch(console.warn);
+      Camera.requestPermissions().catch(console.warn);
+    }
+    
+    
     const initCall = async () => {
       // Simulate connection time
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -208,17 +215,20 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
     try {
       const photo = await Camera.getPhoto({
         source,
-        resultType: CameraResultType.DataUrl,
-        quality: 85,
+        resultType: CameraResultType.Base64, // Base64 is safer on Android than DataUrl
+        quality: 80,
         allowEditing: false,
       });
-      if (photo.dataUrl) {
+      if (photo.base64String) {
         const mime = photo.format === 'png' ? 'image/png' : 'image/jpeg';
-        setSelectedImage(photo.dataUrl);
+        const dataUrl = `data:${mime};base64,${photo.base64String}`;
+        
+        setSelectedImage(dataUrl);
         setSelectedMimeType(mime);
+        
         // Pass image directly to avoid async setState race condition
         if (statusRef.current === "listening" || statusRef.current === "connecting") {
-          const base64 = photo.dataUrl.split(",")[1];
+          const base64 = photo.base64String;
           stopListening();
           await processUserInputWithImage("Tôi vừa gửi cho bạn một hình ảnh, hãy phân tích và chẩn đoán bệnh trên cây.", base64, mime);
         }
@@ -226,6 +236,7 @@ export const CallExpertView = ({ onEndCall, apiKey }: CallExpertViewProps) => {
     } catch (err: any) {
       if (!err.message?.includes('cancelled')) {
         console.log('Camera error:', err);
+        alert(`Lỗi khi mở Camera/Thư viện: ${err.message}`);
       }
     }
   };
